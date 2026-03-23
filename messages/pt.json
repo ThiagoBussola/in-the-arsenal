@@ -1,0 +1,51 @@
+{
+  "metadata": {
+    "title": "In the Arsenal — Seu Hub Estratégico para Flesh and Blood TCG",
+    "description": "Decks, lore, análises especializadas e ferramentas para a comunidade do card game Flesh and Blood."
+  },
+  "nav": {
+    "about": "Sobre",
+    "features": "Recursos",
+    "comingSoon": "Em Breve"
+  },
+  "hero": {
+    "titlePre": "In the",
+    "titleHighlight": "Arsenal",
+    "subtitle": "Seu Hub Estratégico para {game} TCG.",
+    "subtitleLine2": "Decks, Lore e Comunidade.",
+    "explore": "Explorar",
+    "comingSoon": "Em Breve",
+    "scroll": "Rolar"
+  },
+  "about": {
+    "tag": "Forjado em Rathe",
+    "heading": "Um hub feito por jogadores, para jogadores.",
+    "description": "In the Arsenal une conteúdo especializado e ferramentas poderosas para afiar seu jogo. De análises profundas do meta à construção de decks simplificada — tudo que você precisa para dominar a combat chain."
+  },
+  "pillars": {
+    "tag": "Os Dois Pilares",
+    "heading": "Conhecimento e técnica. Domine ambos.",
+    "content": {
+      "title": "Análise Especializada",
+      "description": "Mergulhos profundos no meta, guias de decks, cobertura de torneios e curiosidades do lore do mundo de Rathe. Fique à frente da combat chain.",
+      "tags": "Meta · Decks · Lore · Eventos"
+    },
+    "tools": {
+      "title": "Forje Seu Deck",
+      "description": "Construa, compartilhe e gerencie suas decklists ou lista de desejos para troca e venda. Seu arsenal, organizado e pronto para a batalha.",
+      "tags": "Decklists · Wishlists · Trocas"
+    }
+  },
+  "teaser": {
+    "tag": "A forja está esquentando",
+    "heading": "Algo poderoso está sendo forjado.",
+    "description": "Estamos construindo as ferramentas e o conteúdo que todo jogador de Flesh and Blood merece. Fique ligado.",
+    "badge": "Em Desenvolvimento"
+  },
+  "footer": {
+    "trademark": "Flesh and Blood é uma marca registrada da Legend Story Studios."
+  },
+  "langSwitcher": {
+    "label": "Idioma"
+  }
+}

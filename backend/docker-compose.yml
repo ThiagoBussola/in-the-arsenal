@@ -1,0 +1,37 @@
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: arsenal
+      POSTGRES_PASSWORD: arsenal_secret
+      POSTGRES_DB: in_the_arsenal
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U arsenal -d in_the_arsenal"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build: .
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      NODE_ENV: development
+      PORT: 3001
+      DATABASE_URL: postgres://arsenal:arsenal_secret@db:5432/in_the_arsenal
+      JWT_SECRET: dev-jwt-secret-change-in-prod-32chars
+      JWT_REFRESH_SECRET: dev-refresh-secret-change-prod-32
+      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
+      EMAIL_ENABLED: "false"
+    ports:
+      - "3001:3001"
+
+volumes:
+  pgdata:

@@ -1,0 +1,214 @@
+{
+  "_type": "export",
+  "__export_format": 4,
+  "__export_source": "insomnia.desktop.app:v2026",
+  "resources": [
+    {
+      "_id": "wrk_arsenal",
+      "_type": "workspace",
+      "name": "In the Arsenal API",
+      "description": "Backend API for the In the Arsenal FaB hub"
+    },
+    {
+      "_id": "env_base",
+      "_type": "environment",
+      "parentId": "wrk_arsenal",
+      "name": "Local",
+      "data": {
+        "base_url": "http://localhost:3001/api",
+        "access_token": "",
+        "refresh_token": ""
+      }
+    },
+    {
+      "_id": "fld_auth",
+      "_type": "request_group",
+      "parentId": "wrk_arsenal",
+      "name": "Auth"
+    },
+    {
+      "_id": "req_register",
+      "_type": "request",
+      "parentId": "fld_auth",
+      "name": "Register",
+      "method": "POST",
+      "url": "{{ _.base_url }}/auth/register",
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"name\": \"Dorinthea Ironsong\",\n  \"email\": \"dorinthea@rathe.com\",\n  \"password\": \"BladeOfRathe42!\"\n}"
+      }
+    },
+    {
+      "_id": "req_login",
+      "_type": "request",
+      "parentId": "fld_auth",
+      "name": "Login",
+      "method": "POST",
+      "url": "{{ _.base_url }}/auth/login",
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"email\": \"dorinthea@rathe.com\",\n  \"password\": \"BladeOfRathe42!\"\n}"
+      }
+    },
+    {
+      "_id": "req_refresh",
+      "_type": "request",
+      "parentId": "fld_auth",
+      "name": "Refresh Token",
+      "method": "POST",
+      "url": "{{ _.base_url }}/auth/refresh",
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"refreshToken\": \"{{ _.refresh_token }}\"\n}"
+      }
+    },
+    {
+      "_id": "req_logout",
+      "_type": "request",
+      "parentId": "fld_auth",
+      "name": "Logout",
+      "method": "POST",
+      "url": "{{ _.base_url }}/auth/logout",
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"refreshToken\": \"{{ _.refresh_token }}\"\n}"
+      }
+    },
+    {
+      "_id": "req_me",
+      "_type": "request",
+      "parentId": "fld_auth",
+      "name": "Get Current User",
+      "method": "GET",
+      "url": "{{ _.base_url }}/auth/me",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{ _.access_token }}" }
+      ]
+    },
+    {
+      "_id": "fld_posts",
+      "_type": "request_group",
+      "parentId": "wrk_arsenal",
+      "name": "Posts"
+    },
+    {
+      "_id": "req_list_posts",
+      "_type": "request",
+      "parentId": "fld_posts",
+      "name": "List Posts",
+      "method": "GET",
+      "url": "{{ _.base_url }}/posts?page=1&limit=20",
+      "headers": []
+    },
+    {
+      "_id": "req_get_post_by_slug",
+      "_type": "request",
+      "parentId": "fld_posts",
+      "name": "Get Post by Slug",
+      "method": "GET",
+      "url": "{{ _.base_url }}/posts/slug/my-first-deck-guide",
+      "headers": []
+    },
+    {
+      "_id": "req_create_post",
+      "_type": "request",
+      "parentId": "fld_posts",
+      "name": "Create Post",
+      "method": "POST",
+      "url": "{{ _.base_url }}/posts",
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" },
+        { "name": "Authorization", "value": "Bearer {{ _.access_token }}" }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"title\": \"My First Deck Guide\",\n  \"slug\": \"my-first-deck-guide\",\n  \"excerpt\": \"A comprehensive guide to building your first FaB deck.\",\n  \"content\": \"# Introduction\\n\\nWelcome to Flesh and Blood...\",\n  \"status\": \"DRAFT\",\n  \"tagNames\": [\"deck-guide\", \"beginner\"]\n}"
+      }
+    },
+    {
+      "_id": "req_update_post",
+      "_type": "request",
+      "parentId": "fld_posts",
+      "name": "Update Post",
+      "method": "PATCH",
+      "url": "{{ _.base_url }}/posts/POST_ID_HERE",
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" },
+        { "name": "Authorization", "value": "Bearer {{ _.access_token }}" }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"status\": \"PUBLISHED\"\n}"
+      }
+    },
+    {
+      "_id": "req_delete_post",
+      "_type": "request",
+      "parentId": "fld_posts",
+      "name": "Delete Post",
+      "method": "DELETE",
+      "url": "{{ _.base_url }}/posts/POST_ID_HERE",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{ _.access_token }}" }
+      ]
+    },
+    {
+      "_id": "req_search_posts",
+      "_type": "request",
+      "parentId": "fld_posts",
+      "name": "Search Posts",
+      "method": "GET",
+      "url": "{{ _.base_url }}/posts?search=deck&status=PUBLISHED&page=1&limit=10",
+      "headers": []
+    },
+    {
+      "_id": "fld_ai",
+      "_type": "request_group",
+      "parentId": "wrk_arsenal",
+      "name": "AI Helper"
+    },
+    {
+      "_id": "req_ai_chat",
+      "_type": "request",
+      "parentId": "fld_ai",
+      "name": "Chat with Arsenal AI",
+      "method": "POST",
+      "url": "{{ _.base_url }}/ai/chat",
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" },
+        { "name": "Authorization", "value": "Bearer {{ _.access_token }}" }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"messages\": [\n    {\n      \"role\": \"user\",\n      \"content\": \"What are the best Warrior heroes in the current FaB meta?\"\n    }\n  ]\n}"
+      }
+    },
+    {
+      "_id": "fld_health",
+      "_type": "request_group",
+      "parentId": "wrk_arsenal",
+      "name": "Health"
+    },
+    {
+      "_id": "req_health",
+      "_type": "request",
+      "parentId": "fld_health",
+      "name": "Health Check",
+      "method": "GET",
+      "url": "http://localhost:3001/health",
+      "headers": []
+    }
+  ]
+}

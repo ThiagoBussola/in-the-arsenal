@@ -1,0 +1,51 @@
+{
+  "metadata": {
+    "title": "In the Arsenal — Your Strategic Hub for Flesh and Blood TCG",
+    "description": "Decks, lore, expert analysis, and community tools for the Flesh and Blood trading card game."
+  },
+  "nav": {
+    "about": "About",
+    "features": "Features",
+    "comingSoon": "Coming Soon"
+  },
+  "hero": {
+    "titlePre": "In the",
+    "titleHighlight": "Arsenal",
+    "subtitle": "Your Strategic Hub for {game} TCG.",
+    "subtitleLine2": "Decks, Lore, and Community.",
+    "explore": "Explore",
+    "comingSoon": "Coming Soon",
+    "scroll": "Scroll"
+  },
+  "about": {
+    "tag": "Forged in Rathe",
+    "heading": "A hub built by players, for players.",
+    "description": "In the Arsenal brings together expert content and powerful tools to sharpen your game. From deep meta analysis to streamlined deck building — everything you need to dominate the combat chain."
+  },
+  "pillars": {
+    "tag": "The Two Pillars",
+    "heading": "Knowledge and craft. Master both.",
+    "content": {
+      "title": "Expert Analysis",
+      "description": "Deep dives into the meta, deck guides, tournament coverage, and lore curiosities from the world of Rathe. Stay ahead of the combat chain.",
+      "tags": "Meta · Decks · Lore · Events"
+    },
+    "tools": {
+      "title": "Forge Your Deck",
+      "description": "Build, share, and manage your decklists or wishlist for trading and selling. Your arsenal, organized and ready for battle.",
+      "tags": "Decklists · Wishlists · Trading"
+    }
+  },
+  "teaser": {
+    "tag": "The forge is heating up",
+    "heading": "Something powerful is being crafted.",
+    "description": "We're building the tools and content that every Flesh and Blood player deserves. Stay tuned.",
+    "badge": "In Development"
+  },
+  "footer": {
+    "trademark": "Flesh and Blood is a trademark of Legend Story Studios."
+  },
+  "langSwitcher": {
+    "label": "Language"
+  }
+}
