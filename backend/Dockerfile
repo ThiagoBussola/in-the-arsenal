@@ -23,6 +23,11 @@ RUN npm ci --omit=dev && npm cache clean --force
 
 COPY --from=builder /app/dist ./dist
 
+# Migrações no deploy (releaseCommand / npm run db:migrate em produção)
+COPY .sequelizerc sequelize.config.cjs ./
+COPY src/migrations ./src/migrations
+COPY src/seeders ./src/seeders
+
 USER appuser
 
 EXPOSE ${PORT:-3001}

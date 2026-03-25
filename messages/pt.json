@@ -184,6 +184,8 @@
     "hasAccount": "Já tem uma conta?",
     "signInLink": "Entrar",
     "loginError": "Email ou senha inválidos",
+    "networkUnreachable": "Não foi possível contactar o servidor. Verifica a ligação e tenta de novo.",
+    "upstreamUnavailable": "O serviço está temporariamente indisponível. Tenta de novo daqui a pouco.",
     "registerError": "Não foi possível criar a conta",
     "googleError": "Falha no login com Google",
     "passwordMismatch": "As senhas não coincidem",

@@ -184,6 +184,8 @@
     "hasAccount": "Already have an account?",
     "signInLink": "Sign in",
     "loginError": "Invalid email or password",
+    "networkUnreachable": "Could not reach the server. Check your connection and try again.",
+    "upstreamUnavailable": "The service is temporarily unavailable. Please try again in a few minutes.",
     "registerError": "Could not create account",
     "googleError": "Google sign-in failed",
     "passwordMismatch": "Passwords do not match",

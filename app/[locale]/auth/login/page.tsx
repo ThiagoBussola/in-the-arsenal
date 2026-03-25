@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { useRouter, Link } from "@/i18n/navigation";
 import { GoogleLogin } from "@react-oauth/google";
 import { useAuth } from "../../../lib/auth-context";
+import { formatAuthFetchError } from "../../../lib/fetch-errors";
 import { ShieldIcon } from "../../../icons";
 import { AuthScaffold } from "../../../components/layout/AuthScaffold";
 
@@ -28,7 +29,7 @@ export default function LoginPage() {
       await login(email, password);
       router.push("/");
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : t("loginError"));
+      setError(formatAuthFetchError(err, t, "loginError"));
     } finally {
       setLoading(false);
     }
@@ -42,7 +43,7 @@ export default function LoginPage() {
       await googleLogin(response.credential);
       router.push("/");
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : t("loginError"));
+      setError(formatAuthFetchError(err, t, "loginError"));
     } finally {
       setLoading(false);
     }

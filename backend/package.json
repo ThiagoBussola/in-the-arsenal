@@ -10,10 +10,10 @@
     "test": "NODE_ENV=test JWT_SECRET=test-jwt-secret-minimum-16chars JWT_REFRESH_SECRET=test-refresh-secret-min-16ch npx poku tests/",
     "test:unit": "NODE_ENV=test JWT_SECRET=test-jwt-secret-minimum-16chars JWT_REFRESH_SECRET=test-refresh-secret-min-16ch npx poku tests/unit/",
     "test:integration": "NODE_ENV=test JWT_SECRET=test-jwt-secret-minimum-16chars JWT_REFRESH_SECRET=test-refresh-secret-min-16ch npx poku tests/integration/",
-    "db:migrate": "sequelize-cli db:migrate",
-    "db:migrate:undo": "sequelize-cli db:migrate:undo",
-    "db:seed": "sequelize-cli db:seed:all",
-    "db:seed:undo": "sequelize-cli db:seed:undo:all"
+    "db:migrate": "npx sequelize-cli db:migrate",
+    "db:migrate:undo": "npx sequelize-cli db:migrate:undo",
+    "db:seed": "npx sequelize-cli db:seed:all",
+    "db:seed:undo": "npx sequelize-cli db:seed:undo:all"
   },
   "dependencies": {
     "bcrypt": "^6.0.0",
@@ -29,6 +29,7 @@
     "pino": "^10.3.0",
     "reflect-metadata": "^0.2.2",
     "sequelize": "^6.37.8",
+    "sequelize-cli": "^6.6.5",
     "sequelize-typescript": "^2.1.6",
     "zod": "^4.3.6"
   },
@@ -40,7 +41,6 @@
     "@types/morgan": "^1.9.10",
     "@types/node": "^25.5.0",
     "poku": "^4.1.0",
-    "sequelize-cli": "^6.6.5",
     "tsx": "^4.21.0",
     "typescript": "^6.0.2"
   }

@@ -1,0 +1,6 @@
+# Usado quando o serviço Railway tem Root Directory = backend (ou repo só com API).
+# Corre migrações antes de cada deploy; exige DATABASE_URL e NODE_ENV=production no serviço.
+
+[deploy]
+releaseCommand = "npx sequelize-cli db:migrate"
+startCommand = "node dist/server.js"

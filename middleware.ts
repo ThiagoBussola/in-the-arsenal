@@ -8,6 +8,7 @@ export const config = {
     "/",
     "/(pt|en)/:path*",
     // Pathnames sem locale (ex.: /decks) → redireciona para /pt/...
-    "/((?!_next|_vercel|.*\\..*).*)",
+    // Exclui /api/* (proxy para o backend; não deve passar pelo next-intl)
+    "/((?!api|_next|_vercel|.*\\..*).*)",
   ],
 };
