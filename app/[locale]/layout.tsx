@@ -5,6 +5,7 @@ import { getTranslations } from "next-intl/server";
 import { routing } from "../../i18n/routing";
 import { notFound } from "next/navigation";
 import "../globals.css";
+import { Providers } from "./Providers";
 
 const cinzel = Cinzel({
   variable: "--font-cinzel",
@@ -52,7 +53,7 @@ export default async function LocaleLayout({ children, params }: Props) {
     >
       <body className="min-h-full flex flex-col">
         <NextIntlClientProvider locale={locale} messages={messages}>
-          {children}
+          <Providers>{children}</Providers>
         </NextIntlClientProvider>
       </body>
     </html>

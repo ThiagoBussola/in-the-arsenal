@@ -1,4 +1,4 @@
-import { useTranslations } from "next-intl";
+import { getTranslations } from "next-intl/server";
 import {
   ShieldIcon,
   SwordsIcon,
@@ -8,9 +8,13 @@ import {
   ChevronDownIcon,
 } from "../icons";
 import { LanguageSwitcher } from "./LanguageSwitcher";
+import { NavAuth } from "./NavAuth";
 
-export default function Home() {
-  const t = useTranslations();
+type Props = { params: Promise<{ locale: string }> };
+
+export default async function Home({ params }: Props) {
+  const { locale } = await params;
+  const t = await getTranslations({ locale });
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -18,31 +22,38 @@ export default function Home() {
       <nav className="fixed top-0 z-50 w-full border-b border-surface-border/50 bg-background/80 backdrop-blur-md">
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
           <a
-            href="/"
+            href={`/${locale}`}
             className="font-heading text-lg font-semibold tracking-wider text-gold"
           >
             In the Arsenal
           </a>
           <div className="flex items-center gap-6 text-sm text-muted">
             <a
-              href="#about"
+              href={`/${locale}#about`}
               className="transition-colors hover:text-foreground"
             >
               {t("nav.about")}
             </a>
             <a
-              href="#pillars"
+              href={`/${locale}#pillars`}
               className="transition-colors hover:text-foreground"
             >
               {t("nav.features")}
             </a>
-            <LanguageSwitcher />
             <a
-              href="#"
-              className="rounded-sm border border-gold/30 px-4 py-1.5 font-heading text-xs font-semibold tracking-widest text-gold uppercase transition-all hover:border-gold/60 hover:bg-gold/5"
+              href={`/${locale}/blog`}
+              className="transition-colors hover:text-foreground"
             >
-              {t("nav.comingSoon")}
+              {t("nav.blog")}
             </a>
+            <a
+              href={`/${locale}/decks`}
+              className="transition-colors hover:text-foreground"
+            >
+              {t("nav.decks")}
+            </a>
+            <LanguageSwitcher />
+            <NavAuth />
           </div>
         </div>
       </nav>
@@ -80,13 +91,11 @@ export default function Home() {
           </div>
 
           <p className="text-balance max-w-xl text-lg leading-relaxed text-muted sm:text-xl">
-            {t.rich("hero.subtitle", {
-              game: (chunks) => (
-                <span className="text-crimson-bright font-medium">
-                  {chunks}
-                </span>
-              ),
-            })}
+            {t("hero.subtitlePrefix")}
+            <span className="font-medium text-crimson-bright">
+              {t("hero.gameName")}
+            </span>
+            {t("hero.subtitleSuffix")}
             <br />
             {t("hero.subtitleLine2")}
           </p>
