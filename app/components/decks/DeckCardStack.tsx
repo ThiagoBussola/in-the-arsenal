@@ -30,7 +30,8 @@ export function DeckCardStack({
         ? "max-w-[160px]"
         : "max-w-[132px]";
 
-  if (!card?.imageUrl) {
+  const imageUrl = card?.imageUrl ?? null;
+  if (!card || !imageUrl) {
     return (
       <div
         className={`mx-auto flex w-full ${maxW} flex-col items-center justify-center rounded-md border border-surface-border bg-surface/80 px-2 py-4 text-center ${className}`}
@@ -63,7 +64,7 @@ export function DeckCardStack({
               }}
             >
               <img
-                src={card.imageUrl}
+                src={imageUrl}
                 alt=""
                 className="h-[420%] w-full object-cover object-top"
                 draggable={false}
@@ -75,7 +76,7 @@ export function DeckCardStack({
           style={{ aspectRatio: "5 / 7" }}
         >
           <img
-            src={card.imageUrl}
+            src={imageUrl}
             alt={card.name}
             className="h-full w-full object-cover"
             draggable={false}
