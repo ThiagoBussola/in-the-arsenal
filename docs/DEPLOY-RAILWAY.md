@@ -20,14 +20,14 @@ Utilizador  →  https://www.inthearsenal.com     →  Serviço **Web** (Next)
                     ▼
                Next faz **proxy** para o Express
 
-Next (servidor)  →  API_SERVER_URL  →  https://api.inthearsenal.com  →  Serviço **API**
+Next (servidor)  →  NEXT_PUBLIC_API_SERVER_ORIGIN  →  https://api.inthearsenal.com  →  Serviço **API**
                                                                               │
                                                                               ▼
                                                                         Postgres (DATABASE_URL)
 ```
 
 - O **browser** só fala com `www` (Next). Não precisa de CORS para o Express se usares o proxy `/api`.
-- O **Next no servidor** precisa de saber o URL **público HTTPS** da API → variável `API_SERVER_URL` (ou `BACKEND_URL`).
+- O **Next no servidor** precisa do URL **público HTTPS** da API → **`NEXT_PUBLIC_API_SERVER_ORIGIN`** (sem `/api`). Não uses `API_SERVER_URL` no serviço do front: o **Railpack** trata isso como *build secret* e o build falha com `secret API_SERVER_URL: not found`.
 
 **Erro comum:** colocar o domínio `www` no serviço da API. O `www` deve estar no serviço **Web (Next)**. A API deve ter domínio tipo **`api.inthearsenal.com`** (ou só o URL `*.up.railway.app` enquanto testas).
 
@@ -103,7 +103,7 @@ Opcionais (já tens algumas): `JWT_EXPIRES_IN`, `JWT_REFRESH_EXPIRES_IN`, `GOOGL
 
 **Remove** ou **não uses** `www.inthearsenal.com` neste serviço — esse domínio fica para o Next.
 
-Podes deixar só o URL público Railway (`https://in-the-arsenal-api-production.up.railway.app` ou similar) enquanto não configurares `api.`; nesse caso `API_SERVER_URL` no front é esse URL **https completo, sem path `/api`**.
+Podes deixar só o URL público Railway (`https://in-the-arsenal-api-production.up.railway.app` ou similar) enquanto não configurares `api.`; nesse caso `NEXT_PUBLIC_API_SERVER_ORIGIN` no front é esse URL **https completo, sem path `/api`**.
 
 ---
 
@@ -122,7 +122,7 @@ Podes deixar só o URL público Railway (`https://in-the-arsenal-api-production.
 | Variável | Obrigatório? | Valor |
 |----------|----------------|--------|
 | `NODE_ENV` | Sim | `production` |
-| `API_SERVER_URL` | **Sim** | URL **HTTPS** da API, ex. `https://api.inthearsenal.com` **ou** o URL `https://….up.railway.app` **sem** `/api` no fim |
+| `NEXT_PUBLIC_API_SERVER_ORIGIN` | **Sim** | URL **HTTPS** da API **sem** `/api`, ex. `https://api.inthearsenal.com` ou `https://….up.railway.app` |
 | `NEXT_PUBLIC_GOOGLE_CLIENT_ID` | Se usares Google no login | Igual ao Google Cloud |
 
 **Não** precisas de `DATABASE_URL` no Next.
@@ -140,7 +140,7 @@ Podes deixar só o URL público Railway (`https://in-the-arsenal-api-production.
 - [ ] API: Root `backend`, Docker, `JWT_*`, `NODE_ENV=production`
 - [ ] API: domínio **`api.…`** ou URL Railway; **sem** `www` na API
 - [ ] Web: raiz do repo, `npm run build` / `npm start`
-- [ ] Web: **`API_SERVER_URL`** = URL público da API (https)
+- [ ] Web: **`NEXT_PUBLIC_API_SERVER_ORIGIN`** = URL público da API (https, sem `/api`)
 - [ ] Web: domínio **`www.…`**
 - [ ] Deploy da API: ver logs da fase **Release** com migrações OK
 - [ ] Abrir `https://www…/pt/auth/register` e testar cadastro

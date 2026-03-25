@@ -2,7 +2,8 @@ import { API_UPSTREAM_ERROR } from "./fetch-errors";
 
 /**
  * Browser: same-origin `/api` (proxied to Express) unless NEXT_PUBLIC_API_URL is set.
- * Avoids shipping builds that default to localhost — fixes NetworkError in production.
+ * Server: NEXT_PUBLIC_API_SERVER_ORIGIN = backend base URL without /api (Railway Railpack
+ * treats API_SERVER_URL as a build secret; use NEXT_PUBLIC_* so `next build` gets the value).
  */
 function apiBase(): string {
   const explicit = process.env.NEXT_PUBLIC_API_URL?.trim();
@@ -12,12 +13,9 @@ function apiBase(): string {
     return `${window.location.origin}/api`;
   }
 
-  const server =
-    process.env.API_SERVER_URL?.trim() ||
-    process.env.BACKEND_URL?.trim() ||
-    "";
-  if (server) {
-    const s = server.replace(/\/$/, "");
+  const origin = process.env.NEXT_PUBLIC_API_SERVER_ORIGIN?.trim() ?? "";
+  if (origin) {
+    const s = origin.replace(/\/$/, "");
     return s.endsWith("/api") ? s : `${s}/api`;
   }
 

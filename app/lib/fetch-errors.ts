@@ -1,4 +1,4 @@
-/** Thrown when the Next proxy cannot reach the Express API (misconfigured API_SERVER_URL, backend down). */
+/** Thrown when the Next proxy cannot reach the Express API (misconfigured NEXT_PUBLIC_API_SERVER_ORIGIN, backend down). */
 export const API_UPSTREAM_ERROR = "__API_UPSTREAM__";
 
 export function isLikelyNetworkFailure(err: unknown): boolean {

@@ -4,19 +4,14 @@ import { API_UPSTREAM_ERROR } from "../../lib/fetch-errors";
 export const runtime = "nodejs";
 
 /**
- * Proxies /api/* to the Express backend so the browser only talks to the Next origin
- * (fixes production when NEXT_PUBLIC_API_URL was missing → fetch to localhost → NetworkError).
- * Set API_SERVER_URL or BACKEND_URL on the Next service (e.g. https://your-api.railway.app).
+ * Proxies /api/* to the Express backend. Set NEXT_PUBLIC_API_SERVER_ORIGIN on the Next
+ * service (e.g. https://api.example.com) — no /api suffix. Use NEXT_PUBLIC_* so Railpack
+ * does not require a missing BuildKit "secret" for API_SERVER_URL.
  */
 function backendOrigin(): string {
-  const raw = (
-    process.env.API_SERVER_URL ||
-    process.env.BACKEND_URL ||
-    ""
-  ).trim();
-
-  if (raw) {
-    let u = raw.replace(/\/$/, "");
+  const primary = process.env.NEXT_PUBLIC_API_SERVER_ORIGIN?.trim() ?? "";
+  if (primary) {
+    let u = primary.replace(/\/$/, "");
     if (u.endsWith("/api")) u = u.slice(0, -4);
     return u;
   }
