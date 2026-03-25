@@ -1,5 +1,6 @@
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
+import { OAuth2Client } from "google-auth-library";
 import { env } from "../config/env";
 import { userRepository } from "../repositories/UserRepository";
 import { RefreshToken, User } from "../models";
@@ -113,6 +114,55 @@ export class AuthService {
     const refreshToken = await this.createRefreshToken(user.id);
 
     return { accessToken, refreshToken };
+  }
+
+  async googleLogin(idToken: string) {
+    if (!env.GOOGLE_CLIENT_ID) {
+      throw new AppError(503, "Google authentication is not configured");
+    }
+
+    const client = new OAuth2Client(env.GOOGLE_CLIENT_ID);
+    const ticket = await client.verifyIdToken({
+      idToken,
+      audience: env.GOOGLE_CLIENT_ID,
+    });
+
+    const payload = ticket.getPayload();
+    if (!payload || !payload.email) {
+      throw new AppError(401, "Invalid Google token");
+    }
+
+    const { sub: googleId, email, name, email_verified } = payload;
+
+    if (!email_verified) {
+      throw new AppError(401, "Google email is not verified");
+    }
+
+    let user = await User.findOne({ where: { googleId } });
+
+    if (!user) {
+      user = await userRepository.findByEmail(email);
+      if (user) {
+        await user.update({ googleId });
+      } else {
+        user = await userRepository.create({
+          name: name || email.split("@")[0],
+          email,
+          googleId,
+          passwordHash: null,
+          emailConfirmedAt: new Date(),
+        });
+      }
+    }
+
+    const accessToken = this.signAccessToken(user);
+    const refreshToken = await this.createRefreshToken(user.id);
+
+    return {
+      user: user.toSafeJSON(),
+      accessToken,
+      refreshToken,
+    };
   }
 
   async logout(token: string): Promise<void> {

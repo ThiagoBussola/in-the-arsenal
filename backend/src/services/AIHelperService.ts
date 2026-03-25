@@ -1,5 +1,6 @@
 import { env } from "../config/env";
 import { AppError } from "../middlewares/errorHandler";
+import { logger } from "../lib/logger";
 
 interface ChatMessage {
   role: "system" | "user" | "assistant";
@@ -55,7 +56,10 @@ export class AIHelperService {
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error("OpenRouter error:", response.status, errorText);
+      logger.error(
+        { status: response.status, body: errorText },
+        "OpenRouter error",
+      );
       throw new AppError(502, "AI service returned an error");
     }
 

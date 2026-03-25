@@ -6,6 +6,7 @@ import {
   registerSchema,
   loginSchema,
   refreshSchema,
+  googleAuthSchema,
 } from "../schemas/auth.schema";
 
 const router = Router();
@@ -22,12 +23,16 @@ router.post("/refresh", validate(refreshSchema), (req, res, next) =>
   authController.refresh(req, res, next)
 );
 
+router.post("/google", validate(googleAuthSchema), (req, res, next) =>
+  authController.googleAuth(req, res, next)
+);
+
 router.post("/logout", (req, res, next) =>
   authController.logout(req, res, next)
 );
 
-router.get("/me", authenticate, (req, res) =>
-  authController.me(req, res)
+router.get("/me", authenticate, (req, res, next) =>
+  authController.me(req, res, next)
 );
 
 export default router;

@@ -31,8 +31,11 @@ export class User extends Model {
   @Column({ type: DataType.STRING(255), allowNull: false, unique: true })
   declare email: string;
 
-  @Column({ type: DataType.STRING(255), allowNull: false })
-  declare passwordHash: string;
+  @Column({ type: DataType.STRING(255), allowNull: true })
+  declare passwordHash: string | null;
+
+  @Column({ type: DataType.STRING(255), allowNull: true, unique: true })
+  declare googleId: string | null;
 
   @Column({
     type: DataType.ENUM(...Object.values(UserRole)),
@@ -53,12 +56,13 @@ export class User extends Model {
   @BeforeCreate
   @BeforeUpdate
   static async hashPassword(instance: User) {
-    if (instance.changed("passwordHash")) {
+    if (instance.changed("passwordHash") && instance.passwordHash) {
       instance.passwordHash = await bcrypt.hash(instance.passwordHash, 12);
     }
   }
 
   async verifyPassword(plain: string): Promise<boolean> {
+    if (!this.passwordHash) return false;
     return bcrypt.compare(plain, this.passwordHash);
   }
 

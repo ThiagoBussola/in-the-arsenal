@@ -1,19 +1,23 @@
 import app from "./app";
 import { env } from "./config/env";
 import { sequelize } from "./config/database";
+import { logger } from "./lib/logger";
 
 async function bootstrap() {
   try {
     await sequelize.authenticate();
-    console.log("Database connection established");
+    logger.info("Database connection established");
   } catch (err) {
-    console.error("Unable to connect to database:", err);
+    logger.fatal({ err }, "Unable to connect to database");
     process.exit(1);
   }
 
   const port = env.PORT;
   app.listen(port, () => {
-    console.log(`[In the Arsenal] API running on port ${port} (${env.NODE_ENV})`);
+    logger.info(
+      { port, env: env.NODE_ENV },
+      "[In the Arsenal] API listening",
+    );
   });
 }
 

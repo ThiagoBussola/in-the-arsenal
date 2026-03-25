@@ -4,3 +4,7 @@ export { Category } from "./Category";
 export { Tag } from "./Tag";
 export { PostTag } from "./PostTag";
 export { RefreshToken } from "./RefreshToken";
+export { CardCache } from "./CardCache";
+export { Deck, DeckFormat, DeckVisibility } from "./Deck";
+export { DeckCard, CardZone } from "./DeckCard";
+export { CardUsageStat } from "./CardUsageStat";

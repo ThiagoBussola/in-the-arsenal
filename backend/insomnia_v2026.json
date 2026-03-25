@@ -196,6 +196,173 @@
       }
     },
     {
+      "_id": "fld_cards",
+      "_type": "request_group",
+      "parentId": "wrk_arsenal",
+      "name": "Cards"
+    },
+    {
+      "_id": "req_card_search",
+      "_type": "request",
+      "parentId": "fld_cards",
+      "name": "Search Cards",
+      "method": "GET",
+      "url": "{{ _.base_url }}/cards/search?q=Pummel&limit=20",
+      "headers": []
+    },
+    {
+      "_id": "req_card_by_id",
+      "_type": "request",
+      "parentId": "fld_cards",
+      "name": "Get Card by Unique ID",
+      "method": "GET",
+      "url": "{{ _.base_url }}/cards/CARD_UNIQUE_ID",
+      "headers": []
+    },
+    {
+      "_id": "req_card_usage",
+      "_type": "request",
+      "parentId": "fld_cards",
+      "name": "Get Card Usage Stats",
+      "method": "GET",
+      "url": "{{ _.base_url }}/cards/CARD_UNIQUE_ID/usage?hero=HERO_UNIQUE_ID&format=CC",
+      "headers": []
+    },
+    {
+      "_id": "fld_decks",
+      "_type": "request_group",
+      "parentId": "wrk_arsenal",
+      "name": "Decks"
+    },
+    {
+      "_id": "req_create_deck",
+      "_type": "request",
+      "parentId": "fld_decks",
+      "name": "Create Deck",
+      "method": "POST",
+      "url": "{{ _.base_url }}/decks",
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" },
+        { "name": "Authorization", "value": "Bearer {{ _.access_token }}" }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"name\": \"Dorinthea Aggro CC\",\n  \"slug\": \"dorinthea-aggro-cc\",\n  \"description\": \"Fast-paced aggro warrior deck\",\n  \"format\": \"CC\",\n  \"visibility\": \"PRIVATE\"\n}"
+      }
+    },
+    {
+      "_id": "req_list_my_decks",
+      "_type": "request",
+      "parentId": "fld_decks",
+      "name": "List My Decks",
+      "method": "GET",
+      "url": "{{ _.base_url }}/decks?page=1&limit=20",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{ _.access_token }}" }
+      ]
+    },
+    {
+      "_id": "req_list_public_decks",
+      "_type": "request",
+      "parentId": "fld_decks",
+      "name": "List Public Decks",
+      "method": "GET",
+      "url": "{{ _.base_url }}/decks/public?page=1&limit=20",
+      "headers": []
+    },
+    {
+      "_id": "req_get_deck",
+      "_type": "request",
+      "parentId": "fld_decks",
+      "name": "Get Deck by ID or Slug",
+      "method": "GET",
+      "url": "{{ _.base_url }}/decks/dorinthea-aggro-cc",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{ _.access_token }}" }
+      ]
+    },
+    {
+      "_id": "req_update_deck",
+      "_type": "request",
+      "parentId": "fld_decks",
+      "name": "Update Deck",
+      "method": "PATCH",
+      "url": "{{ _.base_url }}/decks/DECK_ID",
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" },
+        { "name": "Authorization", "value": "Bearer {{ _.access_token }}" }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"visibility\": \"PUBLIC\",\n  \"description\": \"Updated description\"\n}"
+      }
+    },
+    {
+      "_id": "req_add_card_to_deck",
+      "_type": "request",
+      "parentId": "fld_decks",
+      "name": "Add Card to Deck",
+      "method": "POST",
+      "url": "{{ _.base_url }}/decks/DECK_ID/cards",
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" },
+        { "name": "Authorization", "value": "Bearer {{ _.access_token }}" }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"cardUniqueId\": \"CARD_UNIQUE_ID\",\n  \"quantity\": 3,\n  \"zone\": \"MAIN\"\n}"
+      }
+    },
+    {
+      "_id": "req_replace_deck_cards",
+      "_type": "request",
+      "parentId": "fld_decks",
+      "name": "Replace All Deck Cards",
+      "method": "PUT",
+      "url": "{{ _.base_url }}/decks/DECK_ID/cards",
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" },
+        { "name": "Authorization", "value": "Bearer {{ _.access_token }}" }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"cards\": [\n    { \"cardUniqueId\": \"CARD_1\", \"quantity\": 3, \"zone\": \"MAIN\" },\n    { \"cardUniqueId\": \"CARD_2\", \"quantity\": 1, \"zone\": \"EQUIPMENT\" }\n  ]\n}"
+      }
+    },
+    {
+      "_id": "req_remove_card_from_deck",
+      "_type": "request",
+      "parentId": "fld_decks",
+      "name": "Remove Card from Deck",
+      "method": "DELETE",
+      "url": "{{ _.base_url }}/decks/DECK_ID/cards/CARD_UNIQUE_ID",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{ _.access_token }}" }
+      ]
+    },
+    {
+      "_id": "req_validate_deck",
+      "_type": "request",
+      "parentId": "fld_decks",
+      "name": "Validate Deck",
+      "method": "GET",
+      "url": "{{ _.base_url }}/decks/DECK_ID/validate",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{ _.access_token }}" }
+      ]
+    },
+    {
+      "_id": "req_delete_deck",
+      "_type": "request",
+      "parentId": "fld_decks",
+      "name": "Delete Deck",
+      "method": "DELETE",
+      "url": "{{ _.base_url }}/decks/DECK_ID",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{ _.access_token }}" }
+      ]
+    },
+    {
       "_id": "fld_health",
       "_type": "request_group",
       "parentId": "wrk_arsenal",

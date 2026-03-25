@@ -12,7 +12,8 @@ export class UserRepository {
   async create(data: {
     name: string;
     email: string;
-    passwordHash: string;
+    passwordHash: string | null;
+    googleId?: string | null;
     role?: string;
     emailConfirmedAt?: Date | null;
   }): Promise<User> {
