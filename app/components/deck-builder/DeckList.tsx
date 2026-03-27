@@ -3,6 +3,13 @@
 import { useState, useCallback } from "react";
 import { useTranslations } from "next-intl";
 import type { CardData, CardZone } from "../../lib/types";
+import {
+  DND_MIME,
+  parseDeckDragPayload,
+  setDeckDragData,
+  inferArenaZoneFromCard,
+} from "../../lib/deck-dnd";
+import { DeckCardStack } from "../decks/DeckCardStack";
 
 export interface DeckEntry {
   uniqueId: string;
@@ -11,30 +18,14 @@ export interface DeckEntry {
   zone: CardZone;
 }
 
-const DND_MIME = "application/x-in-the-arsenal-deck-entry";
-
-function parseDragPayload(data: string): { uniqueId: string; fromZone: CardZone } | null {
-  if (!data) return null;
-  try {
-    const o = JSON.parse(data) as { uniqueId?: string; fromZone?: CardZone };
-    if (
-      o.uniqueId &&
-      (o.fromZone === "MAIN" || o.fromZone === "SIDEBOARD")
-    ) {
-      return { uniqueId: o.uniqueId, fromZone: o.fromZone };
-    }
-  } catch {
-    /* ignore */
-  }
-  return null;
-}
-
 interface DeckListProps {
   entries: DeckEntry[];
   format: string;
   onUpdateQuantity: (uniqueId: string, quantity: number) => void;
   onRemove: (uniqueId: string) => void;
   onChangeZone: (uniqueId: string, zone: CardZone) => void;
+  /** Dense card stacks (default). List = compact rows for reordering detail. */
+  layout?: "gallery" | "list";
 }
 
 export function DeckList({
@@ -43,6 +34,7 @@ export function DeckList({
   onUpdateQuantity,
   onRemove,
   onChangeZone,
+  layout = "gallery",
 }: DeckListProps) {
   const t = useTranslations("deckBuilder.deckList");
 
@@ -69,6 +61,7 @@ export function DeckList({
         title={`${t("mainDeck")} (${mainCount}/${minDeck}-${maxPool})`}
         dropZone="MAIN"
         entries={mainCards}
+        layout={layout}
         onUpdateQuantity={onUpdateQuantity}
         onRemove={onRemove}
         onChangeZone={onChangeZone}
@@ -88,6 +81,7 @@ export function DeckList({
         title={`${t("sideboard")} (${sideCount})`}
         dropZone="SIDEBOARD"
         entries={sideboardCards}
+        layout={layout}
         onUpdateQuantity={onUpdateQuantity}
         onRemove={onRemove}
         onChangeZone={onChangeZone}
@@ -104,10 +98,81 @@ export function DeckList({
   );
 }
 
+function zoneMoveButtonClass() {
+  return "pointer-events-auto rounded-sm border border-gold/25 bg-black/85 px-1.5 py-0.5 font-heading text-[9px] font-semibold tracking-wide text-gold uppercase transition-colors hover:border-gold/50 hover:bg-gold/10";
+}
+
+function ZoneMoveButtons({
+  entry,
+  onChangeZone,
+  variant = "gallery",
+}: {
+  entry: DeckEntry;
+  onChangeZone: (uniqueId: string, zone: CardZone) => void;
+  variant?: "gallery" | "inline";
+}) {
+  const t = useTranslations("deckBuilder.deckList");
+  const arenaZ = inferArenaZoneFromCard(entry.card);
+
+  const wrap =
+    variant === "inline"
+      ? "flex flex-row flex-wrap items-center justify-end gap-0.5 py-0 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 [@media(hover:none)]:opacity-100"
+      : "flex flex-wrap justify-center gap-0.5 py-0.5 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 [@media(hover:none)]:opacity-100";
+
+  const stopParentDrag = (ev: React.SyntheticEvent) => {
+    ev.stopPropagation();
+  };
+
+  return (
+    <div className={wrap} onMouseDown={stopParentDrag} onPointerDown={stopParentDrag}>
+      {entry.zone !== "MAIN" && (
+        <button
+          type="button"
+          draggable={false}
+          className={zoneMoveButtonClass()}
+          onClick={(ev) => {
+            stopParentDrag(ev);
+            onChangeZone(entry.uniqueId, "MAIN");
+          }}
+        >
+          {t("toMain")}
+        </button>
+      )}
+      {entry.zone !== "SIDEBOARD" && (
+        <button
+          type="button"
+          draggable={false}
+          className={zoneMoveButtonClass()}
+          onClick={(ev) => {
+            stopParentDrag(ev);
+            onChangeZone(entry.uniqueId, "SIDEBOARD");
+          }}
+        >
+          {t("toSide")}
+        </button>
+      )}
+      {arenaZ && (entry.zone === "MAIN" || entry.zone === "SIDEBOARD") && (
+        <button
+          type="button"
+          draggable={false}
+          className={zoneMoveButtonClass()}
+          onClick={(ev) => {
+            stopParentDrag(ev);
+            onChangeZone(entry.uniqueId, arenaZ);
+          }}
+        >
+          {t("toArena")}
+        </button>
+      )}
+    </div>
+  );
+}
+
 function ZoneSection({
   title,
   dropZone,
   entries,
+  layout,
   onUpdateQuantity,
   onRemove,
   onChangeZone,
@@ -125,6 +190,7 @@ function ZoneSection({
   title: string;
   dropZone: "MAIN" | "SIDEBOARD";
   entries: DeckEntry[];
+  layout: "gallery" | "list";
   onUpdateQuantity: (uniqueId: string, quantity: number) => void;
   onRemove: (uniqueId: string) => void;
   onChangeZone: (uniqueId: string, zone: CardZone) => void;
@@ -155,7 +221,7 @@ function ZoneSection({
     const raw =
       e.dataTransfer.getData(DND_MIME) ||
       e.dataTransfer.getData("text/plain");
-    const parsed = parseDragPayload(raw);
+    const parsed = parseDeckDragPayload(raw);
     clearDragUi();
     if (!parsed) return;
     if (parsed.fromZone === dropZone) return;
@@ -182,7 +248,9 @@ function ZoneSection({
       <div
         role="region"
         aria-label={regionLabel}
-        className={`min-h-[4.5rem] rounded-sm border border-dashed px-1 py-1 transition-colors ${
+        className={`rounded-sm border border-dashed px-1 py-1 transition-colors ${
+          layout === "gallery" ? "min-h-[6rem]" : "min-h-[4.5rem]"
+        } ${
           isOver
             ? "border-gold/55 bg-gold/[0.08]"
             : "border-gold/10 bg-black/10"
@@ -195,6 +263,84 @@ function ZoneSection({
           <p className="flex min-h-[4rem] items-center justify-center px-2 py-3 text-center text-xs leading-relaxed text-muted/70">
             {emptyLabel}
           </p>
+        ) : layout === "gallery" ? (
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
+            {entries
+              .sort((a, b) => a.card.name.localeCompare(b.card.name))
+              .map((entry) => (
+                <div
+                  key={entry.uniqueId}
+                  draggable
+                  title={dragHint}
+                  aria-grabbed={draggingId === entry.uniqueId}
+                  onDragStart={(e) => {
+                    setDraggingId(entry.uniqueId);
+                    setDeckDragData(e, entry.uniqueId, entry.zone);
+                  }}
+                  onDragEnd={clearDragUi}
+                  className={`group relative cursor-grab rounded-sm border border-transparent p-1 transition-colors active:cursor-grabbing hover:border-gold/15 hover:bg-gold/[0.05] ${
+                    draggingId === entry.uniqueId ? "opacity-45" : ""
+                  }`}
+                >
+                  <div className="absolute top-0 right-0 z-20 flex gap-0.5">
+                    <button
+                      type="button"
+                      draggable={false}
+                      onMouseDown={(ev) => ev.stopPropagation()}
+                      onClick={() => onRemove(entry.uniqueId)}
+                      className="flex h-6 w-6 items-center justify-center rounded-bl-sm border border-gold/20 bg-background/95 text-[11px] text-muted opacity-0 transition-opacity hover:text-crimson-bright group-hover:opacity-100"
+                      aria-label="Remove"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                  <div
+                    className="absolute top-1 left-1 z-20 flex items-center gap-0.5 rounded-sm border border-surface-border bg-background/95 px-0.5 py-0.5 shadow-sm"
+                    onMouseDown={(ev) => ev.stopPropagation()}
+                  >
+                    <button
+                      type="button"
+                      draggable={false}
+                      onClick={() =>
+                        onUpdateQuantity(
+                          entry.uniqueId,
+                          Math.max(1, entry.quantity - 1),
+                        )
+                      }
+                      className="flex h-5 w-5 items-center justify-center rounded-sm text-[10px] text-muted hover:bg-gold/10 hover:text-foreground"
+                    >
+                      −
+                    </button>
+                    <span className="min-w-[1rem] text-center text-[10px] font-semibold text-foreground">
+                      {entry.quantity}
+                    </span>
+                    <button
+                      type="button"
+                      draggable={false}
+                      onClick={() =>
+                        onUpdateQuantity(
+                          entry.uniqueId,
+                          Math.min(3, entry.quantity + 1),
+                        )
+                      }
+                      className="flex h-5 w-5 items-center justify-center rounded-sm text-[10px] text-muted hover:bg-gold/10 hover:text-foreground"
+                    >
+                      +
+                    </button>
+                  </div>
+                  <DeckCardStack
+                    card={entry.card}
+                    quantity={entry.quantity}
+                    size="md"
+                    className="pt-6"
+                  />
+                  <ZoneMoveButtons
+                    entry={entry}
+                    onChangeZone={onChangeZone}
+                  />
+                </div>
+              ))}
+          </div>
         ) : (
           <div className="space-y-0.5">
             {entries
@@ -207,13 +353,7 @@ function ZoneSection({
                   aria-grabbed={draggingId === entry.uniqueId}
                   onDragStart={(e) => {
                     setDraggingId(entry.uniqueId);
-                    const payload = JSON.stringify({
-                      uniqueId: entry.uniqueId,
-                      fromZone: entry.zone,
-                    });
-                    e.dataTransfer.setData(DND_MIME, payload);
-                    e.dataTransfer.setData("text/plain", payload);
-                    e.dataTransfer.effectAllowed = "move";
+                    setDeckDragData(e, entry.uniqueId, entry.zone);
                   }}
                   onDragEnd={clearDragUi}
                   className={`group flex cursor-grab items-center gap-2 rounded-sm border border-transparent px-2 py-1 transition-colors active:cursor-grabbing hover:border-gold/10 hover:bg-gold/[0.06] ${
@@ -269,11 +409,19 @@ function ZoneSection({
                     />
                   )}
 
-                  <span className="flex-1 truncate text-xs text-foreground">
+                  <span className="min-w-0 flex-1 truncate text-xs text-foreground">
                     {entry.card.name}
                   </span>
 
                   {entry.card.pitch && <PitchDots pitch={entry.card.pitch} />}
+
+                  <div className="max-w-[11rem] shrink-0">
+                    <ZoneMoveButtons
+                      entry={entry}
+                      onChangeZone={onChangeZone}
+                      variant="inline"
+                    />
+                  </div>
 
                   <button
                     type="button"

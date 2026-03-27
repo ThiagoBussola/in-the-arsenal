@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useMemo } from "react";
 import { useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { CardSearch } from "../../../components/deck-builder/CardSearch";
@@ -25,7 +25,21 @@ import type {
   DeckFormat,
   ValidationError,
 } from "../../../lib/types";
-import { FORMAT_LABELS } from "../../../lib/types";
+import {
+  FORMAT_LABELS,
+  FORMAT_MAX_COPIES,
+  copyLimitGroupKey,
+} from "../../../lib/types";
+import {
+  DND_MIME,
+  inferArenaZoneFromCard,
+  parseDeckDragPayload,
+} from "../../../lib/deck-dnd";
+import {
+  classifyHandSlotItem,
+  isHandLoadoutValid,
+  summarizeHandLoadout,
+} from "../../../lib/arena-weapon-loadout";
 import Link from "next/link";
 import { Link as I18nLink, useRouter } from "@/i18n/navigation";
 
@@ -36,7 +50,7 @@ export default function DeckBuilderPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const editSlug = searchParams.get("edit");
-  const { accessToken, loading: authLoading } = useAuth();
+  const { accessToken, loading: authLoading, user } = useAuth();
 
   const [editingDeckId, setEditingDeckId] = useState<string | null>(null);
   const [editLoading, setEditLoading] = useState(false);
@@ -47,12 +61,13 @@ export default function DeckBuilderPage() {
   const [hero, setHero] = useState<CardData | null>(null);
   const [entries, setEntries] = useState<DeckEntry[]>([]);
   const [previewCard, setPreviewCard] = useState<CardData | null>(null);
-  const [validationErrors, setValidationErrors] = useState<ValidationError[]>(
-    [],
-  );
+  const [libraryHint, setLibraryHint] = useState<string | null>(null);
+  const [validationStamp, setValidationStamp] = useState(0);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState("");
   const [description, setDescription] = useState("");
+  const [deckView, setDeckView] = useState<"gallery" | "list">("gallery");
+  const [arenaDropOver, setArenaDropOver] = useState(false);
 
   useEffect(() => {
     if (!editSlug) {
@@ -76,6 +91,17 @@ export default function DeckBuilderPage() {
           headers: authHeaders(accessToken),
         });
         if (cancelled) return;
+
+        if (user?.id && d.userId !== user.id) {
+          setSaveError(t("notOwnerEdit"));
+          setEditingDeckId(null);
+          setEntries([]);
+          setHero(null);
+          setDeckName("");
+          setDescription("");
+          router.replace("/decks/builder");
+          return;
+        }
 
         const cardMap: Record<string, CardData> = {};
         const ids = [
@@ -115,8 +141,6 @@ export default function DeckBuilderPage() {
           }
         }
         setEntries(nextEntries);
-        const last = nextEntries[nextEntries.length - 1];
-        if (last) setPreviewCard(last.card);
       } catch (e) {
         if (!cancelled) {
           setSaveError(t("loadDeckFailed"));
@@ -130,7 +154,13 @@ export default function DeckBuilderPage() {
     return () => {
       cancelled = true;
     };
-  }, [editSlug, accessToken, authLoading, t]);
+  }, [editSlug, accessToken, authLoading, user?.id, t, router]);
+
+  useEffect(() => {
+    if (!libraryHint) return;
+    const id = window.setTimeout(() => setLibraryHint(null), 2800);
+    return () => window.clearTimeout(id);
+  }, [libraryHint]);
 
   const mainEntries = entries.filter(
     (e) => e.zone === "MAIN" || e.zone === "SIDEBOARD",
@@ -151,41 +181,94 @@ export default function DeckBuilderPage() {
     .filter((e) => e.zone === "MAIN")
     .reduce((s, e) => s + e.quantity, 0);
 
-  const handleAddCard = useCallback((card: CardData) => {
-    setPreviewCard(card);
+  const handleAddCard = useCallback(
+    (card: CardData) => {
+      setLibraryHint(null);
+      setPreviewCard(card);
 
-    const isHeroCard = card.types.includes("Hero");
-    if (isHeroCard) {
-      setHero(card);
-      return;
-    }
-
-    const isEquipment = card.types.includes("Equipment");
-    const isWeapon = card.types.includes("Weapon");
-    let zone: CardZone = "MAIN";
-    if (isEquipment) zone = "EQUIPMENT";
-    else if (isWeapon) zone = "WEAPON";
-
-    setEntries((prev) => {
-      const existing = prev.find((e) => e.uniqueId === card.uniqueId);
-      if (existing) {
-        if (isEquipment || isWeapon) return prev;
-        if (existing.quantity >= 3) return prev;
-        return prev.map((e) =>
-          e.uniqueId === card.uniqueId ? { ...e, quantity: e.quantity + 1 } : e,
-        );
+      const types = Array.isArray(card.types) ? card.types : [];
+      const isHeroCard = types.includes("Hero");
+      if (isHeroCard) {
+        setHero(card);
+        return;
       }
-      return [...prev, { uniqueId: card.uniqueId, card, quantity: 1, zone }];
-    });
-  }, []);
+
+      const arena = inferArenaZoneFromCard(card);
+      const zone: CardZone = arena ?? "MAIN";
+      const isArena = zone === "EQUIPMENT" || zone === "WEAPON";
+      const maxCopies = FORMAT_MAX_COPIES[format];
+
+      setEntries((prev) => {
+        const existing = prev.find((e) => e.uniqueId === card.uniqueId);
+        if (existing) {
+          if (isArena) {
+            queueMicrotask(() =>
+              setLibraryHint(t("cardSearch.alreadyEquipped")),
+            );
+            return prev;
+          }
+          const gk = copyLimitGroupKey(card.name, card.pitch);
+          const groupTotal = prev
+            .filter(
+              (e) => e.zone === "MAIN" || e.zone === "SIDEBOARD",
+            )
+            .filter(
+              (e) => copyLimitGroupKey(e.card.name, e.card.pitch) === gk,
+            )
+            .reduce((s, e) => s + e.quantity, 0);
+          if (groupTotal >= maxCopies) return prev;
+          return prev.map((e) =>
+            e.uniqueId === card.uniqueId
+              ? { ...e, quantity: e.quantity + 1 }
+              : e,
+          );
+        }
+        if (!isArena) {
+          const gk = copyLimitGroupKey(card.name, card.pitch);
+          const groupTotal = prev
+            .filter(
+              (e) => e.zone === "MAIN" || e.zone === "SIDEBOARD",
+            )
+            .filter(
+              (e) => copyLimitGroupKey(e.card.name, e.card.pitch) === gk,
+            )
+            .reduce((s, e) => s + e.quantity, 0);
+          if (groupTotal >= maxCopies) return prev;
+        }
+        return [...prev, { uniqueId: card.uniqueId, card, quantity: 1, zone }];
+      });
+    },
+    [format, t],
+  );
 
   const handleUpdateQuantity = useCallback(
     (uniqueId: string, quantity: number) => {
-      setEntries((prev) =>
-        prev.map((e) => (e.uniqueId === uniqueId ? { ...e, quantity } : e)),
-      );
+      const maxCopies = FORMAT_MAX_COPIES[format];
+      setEntries((prev) => {
+        const entry = prev.find((e) => e.uniqueId === uniqueId);
+        if (!entry) return prev;
+        const q = Math.max(1, Math.floor(quantity));
+        if (entry.zone === "MAIN" || entry.zone === "SIDEBOARD") {
+          const gk = copyLimitGroupKey(entry.card.name, entry.card.pitch);
+          const others = prev
+            .filter((e) => e.uniqueId !== uniqueId)
+            .filter((e) => e.zone === "MAIN" || e.zone === "SIDEBOARD")
+            .filter(
+              (e) => copyLimitGroupKey(e.card.name, e.card.pitch) === gk,
+            )
+            .reduce((s, e) => s + e.quantity, 0);
+          const room = maxCopies - others;
+          const capped = Math.min(q, Math.max(1, room));
+          return prev.map((e) =>
+            e.uniqueId === uniqueId ? { ...e, quantity: capped } : e,
+          );
+        }
+        return prev.map((e) =>
+          e.uniqueId === uniqueId ? { ...e, quantity: q } : e,
+        );
+      });
     },
-    [],
+    [format],
   );
 
   const handleRemoveCard = useCallback((uniqueId: string) => {
@@ -194,29 +277,68 @@ export default function DeckBuilderPage() {
 
   const handleChangeZone = useCallback((uniqueId: string, zone: CardZone) => {
     setEntries((prev) =>
-      prev.map((e) => (e.uniqueId === uniqueId ? { ...e, zone } : e)),
+      prev.map((e) => {
+        if (e.uniqueId !== uniqueId) return e;
+        if (zone === "MAIN" || zone === "SIDEBOARD") {
+          return { ...e, zone };
+        }
+        const correct = inferArenaZoneFromCard(e.card);
+        const nextZone = correct ?? zone;
+        return { ...e, zone: nextZone };
+      }),
     );
   }, []);
+
+  const onArenaDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+    setArenaDropOver(true);
+  }, []);
+
+  const onArenaDragLeave = useCallback((e: React.DragEvent) => {
+    const el = e.currentTarget as HTMLElement;
+    const related = e.relatedTarget as Node | null;
+    if (related && el.contains(related)) return;
+    setArenaDropOver(false);
+  }, []);
+
+  const onArenaDrop = useCallback(
+    (e: React.DragEvent) => {
+      e.preventDefault();
+      setArenaDropOver(false);
+      const raw =
+        e.dataTransfer.getData(DND_MIME) ||
+        e.dataTransfer.getData("text/plain");
+      const parsed = parseDeckDragPayload(raw);
+      if (!parsed) return;
+      if (parsed.fromZone !== "MAIN" && parsed.fromZone !== "SIDEBOARD")
+        return;
+      const entry = entries.find((x) => x.uniqueId === parsed.uniqueId);
+      if (!entry) return;
+      const target = inferArenaZoneFromCard(entry.card);
+      if (!target) return;
+      handleChangeZone(entry.uniqueId, target);
+    },
+    [entries, handleChangeZone],
+  );
 
   const handleRemoveEquipment = useCallback((cardUniqueId: string) => {
     setEntries((prev) => prev.filter((e) => e.uniqueId !== cardUniqueId));
   }, []);
 
   const handleFabraryImported = useCallback(
-    async (payload: {
+    (payload: {
       deckName?: string;
       format?: DeckFormat;
       hero: CardData | null;
       entries: DeckEntry[];
     }) => {
       setSaveError("");
+      setPreviewCard(null);
 
       if (payload.format) setFormat(payload.format);
       setHero(payload.hero);
       setEntries(payload.entries);
-      if (payload.entries.length > 0) {
-        setPreviewCard(payload.entries[payload.entries.length - 1]!.card);
-      }
 
       const importedName = payload.deckName?.trim() ?? "";
       const resolvedName =
@@ -231,35 +353,8 @@ export default function DeckBuilderPage() {
       } else if (deckName.trim().length < 2) {
         setDeckName(resolvedName);
       }
-
-      if (!accessToken) return;
-
-      const resolvedFormat = payload.format ?? format;
-
-      setSaving(true);
-      try {
-        const { slug } = await saveDeckToApi(accessToken, {
-          name: resolvedName,
-          description,
-          format: resolvedFormat,
-          visibility,
-          hero: payload.hero,
-          entries: payload.entries,
-        });
-        router.push(`/decks/${slug}`);
-      } catch (e) {
-        const msg = e instanceof Error ? e.message : "";
-        devError("[deck builder] save after import failed", msg, e);
-        if (msg === "NAME_TOO_SHORT") {
-          setSaveError(t("saveNameTooShort"));
-        } else {
-          setSaveError(msg || t("saveFailed"));
-        }
-      } finally {
-        setSaving(false);
-      }
     },
-    [accessToken, deckName, description, format, visibility, t, router],
+    [deckName, t],
   );
 
   const handleSaveClick = useCallback(async () => {
@@ -318,7 +413,7 @@ export default function DeckBuilderPage() {
     router,
   ]);
 
-  const runValidation = useCallback(() => {
+  const computeValidationErrors = useCallback((): ValidationError[] => {
     const errors: ValidationError[] = [];
 
     if (!hero) {
@@ -341,23 +436,131 @@ export default function DeckBuilderPage() {
       });
     }
 
-    const countByName = new Map<string, number>();
+    const maxCopies = FORMAT_MAX_COPIES[format];
+    const countByGroup = new Map<
+      string,
+      { name: string; pitch: string | null; count: number }
+    >();
     entries.forEach((e) => {
-      const n = countByName.get(e.card.name) || 0;
-      countByName.set(e.card.name, n + e.quantity);
+      if (e.zone !== "MAIN" && e.zone !== "SIDEBOARD") return;
+      const key = copyLimitGroupKey(e.card.name, e.card.pitch);
+      const cur = countByGroup.get(key);
+      const nextCount = (cur?.count ?? 0) + e.quantity;
+      countByGroup.set(key, {
+        name: e.card.name,
+        pitch: e.card.pitch,
+        count: nextCount,
+      });
     });
-    countByName.forEach((count, name) => {
-      if (count > 3) {
-        errors.push({
-          code: "TOO_MANY_COPIES",
-          severity: "error",
-          message: t("validation.tooManyCopies", { name, count }),
-        });
-      }
+    countByGroup.forEach(({ name, pitch, count }) => {
+      if (count <= maxCopies) return;
+      const pr = pitch?.trim() ?? "";
+      const pitchLabel =
+        pr === "1"
+          ? t("validation.pitch1")
+          : pr === "2"
+            ? t("validation.pitch2")
+            : pr === "3"
+              ? t("validation.pitch3")
+              : pr || null;
+      errors.push({
+        code: "TOO_MANY_COPIES",
+        severity: "error",
+        message: pitchLabel
+          ? t("validation.tooManyCopiesPitch", {
+              name,
+              count,
+              max: maxCopies,
+              pitchLabel,
+            })
+          : t("validation.tooManyCopies", {
+              name,
+              count,
+              max: maxCopies,
+            }),
+      });
     });
 
-    setValidationErrors(errors);
+    for (const e of entries) {
+      const arenaType = inferArenaZoneFromCard(e.card);
+      if (e.zone === "EQUIPMENT" && arenaType === "WEAPON") {
+        errors.push({
+          code: "WEAPON_WRONG_ZONE",
+          severity: "error",
+          message: t("validation.weaponWrongZone", { name: e.card.name }),
+          cardName: e.card.name,
+        });
+      }
+      if (e.zone === "WEAPON" && arenaType === "EQUIPMENT") {
+        errors.push({
+          code: "EQUIPMENT_WRONG_ZONE",
+          severity: "error",
+          message: t("validation.equipmentWrongZone", { name: e.card.name }),
+          cardName: e.card.name,
+        });
+      }
+      if (
+        (e.zone === "WEAPON" || e.zone === "EQUIPMENT") &&
+        !arenaType
+      ) {
+        errors.push({
+          code: "INVALID_ARENA_ZONE_CARD",
+          severity: "error",
+          message: t("validation.cardNotArenaGear", { name: e.card.name }),
+          cardName: e.card.name,
+        });
+      }
+    }
+
+    const handItems: Array<{ kind: "two_handed" | "one_handed" | "off_hand"; quantity: number }> =
+      [];
+    for (const e of entries) {
+      if (e.quantity <= 0) continue;
+      if (e.zone !== "WEAPON" && e.zone !== "EQUIPMENT") continue;
+      const kind = classifyHandSlotItem(e.card);
+      if (!kind) continue;
+      handItems.push({ kind, quantity: e.quantity });
+    }
+    const { T, H, O } = summarizeHandLoadout(handItems);
+    if (!isHandLoadoutValid({ T, H, O })) {
+      if (T >= 1 && (H >= 1 || O >= 1)) {
+        errors.push({
+          code: "INVALID_WEAPON_LOADOUT",
+          severity: "error",
+          message: t("validation.invalidWeaponLoadout2hWithOther"),
+        });
+      } else if (T > 1) {
+        errors.push({
+          code: "INVALID_WEAPON_LOADOUT",
+          severity: "error",
+          message: t("validation.invalidWeaponLoadoutTooMany2h"),
+        });
+      } else if (O > 1) {
+        errors.push({
+          code: "INVALID_WEAPON_LOADOUT",
+          severity: "error",
+          message: t("validation.invalidWeaponLoadoutTooManyOffhand"),
+        });
+      } else {
+        errors.push({
+          code: "INVALID_WEAPON_LOADOUT",
+          severity: "error",
+          message: t("validation.invalidWeaponLoadoutHands"),
+        });
+      }
+    }
+
+    return errors;
   }, [hero, format, entries, totalMain, t]);
+
+  const validationErrors = useMemo(
+    () => computeValidationErrors(),
+    [computeValidationErrors, validationStamp],
+  );
+
+  const runValidation = useCallback(() => {
+    setValidationStamp((s) => s + 1);
+  }, []);
 
   if (editSlug && (authLoading || editLoading)) {
     return (
@@ -444,9 +647,9 @@ export default function DeckBuilderPage() {
         </div>
       </header>
 
-      {/* Main: top arena bar + search + deck list */}
+      {/* Deck workspace (main) + library sidebar — FaBrary-style: busca na lateral, deck no centro */}
       <div className="flex min-h-0 flex-1 flex-col overflow-hidden lg:flex-row">
-        <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-y-auto">
+        <div className="order-1 flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden lg:order-2">
           <section className="shrink-0 border-b border-gold/20 bg-gradient-to-b from-gold/[0.08] via-background to-background px-3 py-3 sm:px-5 sm:py-4">
             <h2 className="mb-3 font-heading text-xs font-semibold tracking-[0.2em] text-gold uppercase">
               {t("heroAndArena")}
@@ -464,8 +667,24 @@ export default function DeckBuilderPage() {
                   equipment={equipmentSlots}
                   weapons={weaponCards}
                   onRemove={handleRemoveEquipment}
+                  onMoveToZone={handleChangeZone}
+                  dragHint={t("equipment.dragToDeck")}
                 />
               </div>
+            </div>
+            <div
+              role="region"
+              aria-label={t("dropArenaStrip")}
+              onDragOver={onArenaDragOver}
+              onDragLeave={onArenaDragLeave}
+              onDrop={onArenaDrop}
+              className={`mt-2 rounded-sm border border-dashed px-2 py-1.5 text-center text-[10px] leading-snug transition-colors ${
+                arenaDropOver
+                  ? "border-gold/50 bg-gold/[0.1] text-gold"
+                  : "border-gold/15 text-muted"
+              }`}
+            >
+              {t("dropArenaStrip")}
             </div>
             <div className="mt-4 grid gap-3 sm:grid-cols-2">
               <FabraryImportPanel
@@ -476,41 +695,91 @@ export default function DeckBuilderPage() {
             </div>
           </section>
 
-          <main className="flex flex-1 flex-col p-4">
-            <div className="mb-4">
-              <CardSearch onSelect={handleAddCard} />
+          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-gold/15 px-3 py-2 sm:px-5">
+            <p className="font-heading text-[10px] font-semibold tracking-[0.2em] text-gold/90 uppercase">
+              {t("deckView.deckWorkspace")}
+            </p>
+            <div
+              className="flex rounded-sm border border-gold/20 p-0.5"
+              role="group"
+              aria-label={t("deckView.toggleLabel")}
+            >
+              <button
+                type="button"
+                onClick={() => setDeckView("gallery")}
+                className={`rounded-sm px-3 py-1 font-heading text-[10px] font-semibold tracking-wider uppercase transition-colors ${
+                  deckView === "gallery"
+                    ? "bg-gold/15 text-gold"
+                    : "text-muted hover:text-foreground"
+                }`}
+              >
+                {t("deckView.gallery")}
+              </button>
+              <button
+                type="button"
+                onClick={() => setDeckView("list")}
+                className={`rounded-sm px-3 py-1 font-heading text-[10px] font-semibold tracking-wider uppercase transition-colors ${
+                  deckView === "list"
+                    ? "bg-gold/15 text-gold"
+                    : "text-muted hover:text-foreground"
+                }`}
+              >
+                {t("deckView.list")}
+              </button>
             </div>
+          </div>
 
-            {previewCard && (
-              <div className="mb-4 flex justify-center">
-                <CardPreview
-                  card={previewCard}
-                  heroCardId={hero?.uniqueId}
-                  format={format}
-                />
-              </div>
-            )}
-
-            <div className="mt-auto">
-              <textarea
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                placeholder={t("descriptionPlaceholder")}
-                rows={3}
-                className="w-full resize-none rounded-sm border border-surface-border bg-surface px-3 py-2 text-sm text-foreground placeholder:text-muted/50 focus:border-gold/40 focus:outline-none"
-              />
-            </div>
+          <main className="min-h-0 flex-1 overflow-y-auto p-3 sm:p-4">
+            <DeckList
+              entries={mainEntries}
+              format={format}
+              layout={deckView}
+              onUpdateQuantity={handleUpdateQuantity}
+              onRemove={handleRemoveCard}
+              onChangeZone={handleChangeZone}
+            />
           </main>
         </div>
 
-        <aside className="deck-builder-sidebar deck-builder-sidebar--right flex max-h-[45vh] w-full shrink-0 flex-col overflow-y-auto border-t border-gold/20 p-4 pt-5 lg:max-h-none lg:w-80 lg:border-l lg:border-t-0">
-          <DeckList
-            entries={mainEntries}
-            format={format}
-            onUpdateQuantity={handleUpdateQuantity}
-            onRemove={handleRemoveCard}
-            onChangeZone={handleChangeZone}
-          />
+        <aside className="deck-builder-sidebar deck-builder-sidebar--left order-2 flex max-h-[min(50vh,28rem)] w-full shrink-0 flex-col overflow-y-auto border-t border-gold/20 lg:order-1 lg:max-h-none lg:min-h-0 lg:w-[min(22rem,36vw)] lg:max-w-sm lg:overflow-y-auto lg:border-t-0">
+          <div className="shrink-0 px-3 pt-4 pb-2">
+            <h3 className="font-heading text-xs font-semibold tracking-[0.2em] text-gold uppercase">
+              {t("cardSearch.libraryTitle")}
+            </h3>
+          </div>
+          <div className="flex flex-col px-3 pb-2">
+            <CardSearch variant="sidebar" onSelect={handleAddCard} />
+            {libraryHint && (
+              <p
+                role="status"
+                className="mt-2 rounded-sm border border-amber-500/25 bg-amber-500/10 px-2 py-1.5 text-center text-[11px] leading-snug text-amber-100/90"
+              >
+                {libraryHint}
+              </p>
+            )}
+          </div>
+
+          {previewCard && (
+            <div className="shrink-0 border-t border-gold/15 px-3 py-3">
+              <CardPreview
+                card={previewCard}
+                heroCardId={hero?.uniqueId}
+                format={format}
+                compact
+                onDismiss={() => setPreviewCard(null)}
+              />
+            </div>
+          )}
+
+          <div className="shrink-0 border-t border-gold/15 p-3">
+            <textarea
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder={t("descriptionPlaceholder")}
+              rows={3}
+              className="w-full resize-none rounded-sm border border-surface-border bg-surface px-3 py-2 text-sm text-foreground placeholder:text-muted/50 focus:border-gold/40 focus:outline-none"
+            />
+          </div>
         </aside>
       </div>
     </div>

@@ -6,7 +6,7 @@ import { Link } from "@/i18n/navigation";
 import { LanguageSwitcher } from "../LanguageSwitcher";
 import { NavAuth } from "../NavAuth";
 import { useAuth } from "../../lib/auth-context";
-import type { DeckData, DeckFormat } from "../../lib/types";
+import type { CardData, DeckData, DeckFormat } from "../../lib/types";
 import { FORMAT_LABELS } from "../../lib/types";
 import { apiFetch, authHeaders } from "../../lib/api";
 import { DeckCardMenu } from "../../components/decks/DeckCardMenu";
@@ -17,6 +17,9 @@ export default function MyDecksPage() {
   const { accessToken } = useAuth();
 
   const [decks, setDecks] = useState<DeckData[]>([]);
+  const [heroThumbById, setHeroThumbById] = useState<
+    Record<string, string | null>
+  >({});
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState<"mine" | "public">("public");
   const [formatFilter, setFormatFilter] = useState<DeckFormat | "">("");
@@ -54,6 +57,44 @@ export default function MyDecksPage() {
     }
     void load();
   }, [tab, formatFilter, accessToken]);
+
+  useEffect(() => {
+    const ids = [
+      ...new Set(
+        decks
+          .map((d) => d.heroCardId)
+          .filter((id): id is string => Boolean(id)),
+      ),
+    ];
+    if (ids.length === 0) {
+      setHeroThumbById({});
+      return;
+    }
+    let cancelled = false;
+    void (async () => {
+      const results = await Promise.all(
+        ids.map(async (id) => {
+          try {
+            const c = await apiFetch<CardData>(`/cards/${id}`);
+            return [id, c.imageUrl ?? null] as const;
+          } catch {
+            return [id, null] as const;
+          }
+        }),
+      );
+      if (cancelled) return;
+      setHeroThumbById((prev) => {
+        const out = { ...prev };
+        for (const [id, url] of results) {
+          out[id] = url;
+        }
+        return out;
+      });
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [decks]);
 
   const showMineLoginGate = tab === "mine" && !accessToken;
   const emptyMine =
@@ -187,6 +228,8 @@ export default function MyDecksPage() {
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {decks.map((deck) => {
               const showMineMenu = tab === "mine" && accessToken;
+              const heroId = deck.heroCardId;
+              const heroThumb = heroId ? heroThumbById[heroId] : undefined;
               return (
                 <div
                   key={deck.id}
@@ -209,39 +252,57 @@ export default function MyDecksPage() {
                     href={`/decks/${deck.slug}`}
                     className="block p-5 pr-12"
                   >
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="min-w-0">
-                        <h3 className="font-heading text-sm font-semibold text-foreground transition-colors group-hover:text-gold">
-                          {deck.name}
-                        </h3>
-                        {deck.user && (
-                          <p className="mt-0.5 text-xs text-muted">
-                            {t("byAuthor", { name: deck.user.name })}
+                    <div className="flex items-start gap-3">
+                      {heroId ? (
+                        heroThumb ? (
+                          <img
+                            src={heroThumb}
+                            alt=""
+                            className="h-[4.5rem] w-[3.25rem] shrink-0 rounded-[3px] border border-gold/25 object-cover object-top"
+                          />
+                        ) : (
+                          <div
+                            className="h-[4.5rem] w-[3.25rem] shrink-0 animate-pulse rounded-[3px] border border-surface-border border-dashed bg-surface/70"
+                            aria-hidden
+                          />
+                        )
+                      ) : null}
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="min-w-0">
+                            <h3 className="font-heading text-sm font-semibold text-foreground transition-colors group-hover:text-gold">
+                              {deck.name}
+                            </h3>
+                            {deck.user && (
+                              <p className="mt-0.5 text-xs text-muted">
+                                {t("byAuthor", { name: deck.user.name })}
+                              </p>
+                            )}
+                          </div>
+                          <span className="shrink-0 rounded-sm border border-surface-border px-2 py-0.5 text-[10px] font-medium text-gold">
+                            {deck.format}
+                          </span>
+                        </div>
+
+                        {deck.description && (
+                          <p className="mt-2 text-xs text-muted line-clamp-2">
+                            {deck.description}
                           </p>
                         )}
+
+                        <div className="mt-3 flex items-center gap-3 text-[10px] text-muted">
+                          <span>
+                            {t("cardCount", {
+                              count: deck.cardCount ?? deck.cards?.length ?? 0,
+                            })}
+                          </span>
+                          <span>
+                            {deck.visibility === "PUBLIC"
+                              ? t("visibilityPublic")
+                              : t("visibilityPrivate")}
+                          </span>
+                        </div>
                       </div>
-                      <span className="shrink-0 rounded-sm border border-surface-border px-2 py-0.5 text-[10px] font-medium text-gold">
-                        {deck.format}
-                      </span>
-                    </div>
-
-                    {deck.description && (
-                      <p className="mt-2 text-xs text-muted line-clamp-2">
-                        {deck.description}
-                      </p>
-                    )}
-
-                    <div className="mt-3 flex items-center gap-3 text-[10px] text-muted">
-                      <span>
-                        {t("cardCount", {
-                          count: deck.cardCount ?? deck.cards?.length ?? 0,
-                        })}
-                      </span>
-                      <span>
-                        {deck.visibility === "PUBLIC"
-                          ? t("visibilityPublic")
-                          : t("visibilityPrivate")}
-                      </span>
                     </div>
                   </Link>
                 </div>

@@ -17,13 +17,15 @@ function mockCard(
   name: string,
   pitch: string | null,
   types: string[],
+  typeText: string | null = null,
 ): CardCache {
-  const json = { uniqueId, name, pitch, types };
+  const json = { uniqueId, name, pitch, types, typeText };
   return {
     uniqueId,
     name,
     pitch,
     types,
+    typeText,
     toJSON: () => json,
   } as unknown as CardCache;
 }
@@ -35,6 +37,33 @@ function createPleiadesMockResolver(): FabraryResolveCard {
     const lower = n.toLowerCase();
     if (pitch === null && lower.includes("pleiades")) {
       return mockCard("hero-pleiades", n, null, ["Hero", "Guardian"]);
+    }
+    if (pitch === null && lower.includes("miller")) {
+      return mockCard(
+        "weapon-miller",
+        n,
+        null,
+        ["Weapon", "Guardian"],
+        "Guardian Weapon — Hammer (1H)",
+      );
+    }
+    if (pitch === null && lower.includes("sledge")) {
+      return mockCard(
+        "weapon-sledge",
+        n,
+        null,
+        ["Weapon", "Guardian"],
+        "Guardian Weapon — Hammer (2H)",
+      );
+    }
+    if (pitch === null && lower.includes("rampart")) {
+      return mockCard(
+        "eq-rampart",
+        n,
+        null,
+        ["Equipment", "Guardian", "Off-Hand"],
+        "Guardian Equipment — Off-Hand",
+      );
     }
     if (pitch === null) {
       return mockCard(`eq:${lower}`, n, null, ["Equipment", "Generic"]);
@@ -85,10 +114,32 @@ describe("FaBrary Pleiades clipboard — parser + full import (mock resolver)", 
       "every arena + deck line must become an entry (this is what broke when only one card resolved)",
     );
 
-    const arenaEntries = result.entries.filter((e) => e.zone === CardZone.EQUIPMENT);
-    const mainEntries = result.entries.filter((e) => e.zone === CardZone.MAIN);
-    assert.strictEqual(arenaEntries.length, PLEIADES_EXPECTED_ARENA_LINES);
+    const nArena = PLEIADES_EXPECTED_ARENA_LINES;
+    const arenaPortion = result.entries.slice(0, nArena);
+    const mainEntries = result.entries.slice(nArena);
     assert.strictEqual(mainEntries.length, PLEIADES_EXPECTED_DECK_LINES);
+
+    const sledge = arenaPortion.find((e) =>
+      String(e.card.name).toLowerCase().includes("sledge"),
+    );
+    assert.ok(sledge);
+    assert.strictEqual(
+      sledge!.zone,
+      CardZone.SIDEBOARD,
+      "2H weapon must leave arena when 1H + off-hand are present (FaBrary export has no side marker)",
+    );
+
+    const miller = arenaPortion.find((e) =>
+      String(e.card.name).toLowerCase().includes("miller"),
+    );
+    assert.ok(miller);
+    assert.strictEqual(miller!.zone, CardZone.WEAPON);
+
+    const rampart = arenaPortion.find((e) =>
+      String(e.card.name).toLowerCase().includes("rampart"),
+    );
+    assert.ok(rampart);
+    assert.strictEqual(rampart!.zone, CardZone.EQUIPMENT);
 
     const palmEntry = result.entries.find((e) =>
       String(e.card.name).includes("In the Palm"),

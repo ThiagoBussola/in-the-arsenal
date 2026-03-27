@@ -69,12 +69,24 @@
     "saveFailed": "Não foi possível salvar o deck. Tente de novo.",
     "loadingDeck": "Carregando deck…",
     "loadDeckFailed": "Não foi possível carregar este deck para edição.",
+    "notOwnerEdit": "Só o dono pode editar o deck. Decks públicos continuam somente leitura para outros jogadores.",
     "defaultImportedName": "Deck importado",
     "signInToSave": "Entrar",
     "descriptionPlaceholder": "Descrição do deck (opcional)...",
     "heroAndArena": "Herói + arena",
+    "dropArenaStrip": "Solte aqui uma carta de arma/equipamento do deck principal ou do side para equipar no herói.",
     "cardSearch": {
-      "placeholder": "Buscar cartas pelo nome..."
+      "placeholder": "Buscar cartas pelo nome...",
+      "noResults": "Nenhuma carta com esse nome.",
+      "sidebarHint": "Digite pelo menos 2 letras para buscar na biblioteca.",
+      "alreadyEquipped": "Esta carta já está na arena. Equipamentos e armas só podem ser adicionados uma vez cada.",
+      "libraryTitle": "Biblioteca"
+    },
+    "deckView": {
+      "gallery": "Galeria",
+      "list": "Lista",
+      "deckWorkspace": "Deck",
+      "toggleLabel": "Modo de visualização do deck"
     },
     "heroSelector": {
       "title": "Herói",
@@ -84,14 +96,22 @@
     "equipment": {
       "title": "Equipamentos",
       "empty": "Vazio",
-      "weapons": "Armas"
+      "weapons": "Armas",
+      "slotHead": "Cabeça",
+      "slotChest": "Peito",
+      "slotArms": "Braços",
+      "slotLegs": "Pernas",
+      "dragToDeck": "Arraste para o deck principal ou side abaixo — ou use os botões Principal / Side"
     },
     "deckList": {
       "mainDeck": "Deck Principal",
       "sideboard": "Sideboard",
       "emptyMain": "Nenhuma carta no deck principal",
       "emptySide": "Arraste cartas do deck principal para cá para o sideboard",
-      "dragCard": "Arraste para mover entre deck principal e sideboard"
+      "dragCard": "Arraste entre deck principal, side e arena do herói",
+      "toMain": "Principal",
+      "toSide": "Side",
+      "toArena": "Arena"
     },
     "validation": {
       "title": "Validação",
@@ -100,15 +120,26 @@
       "warnings": "avisos",
       "noHero": "Um herói deve ser selecionado",
       "tooFewCards": "Deck principal tem {count} cartas, mínimo é {min}",
-      "tooManyCopies": "{name} tem {count} cópias, máximo é 3"
+      "pitch1": "vermelho",
+      "pitch2": "amarelo",
+      "pitch3": "azul",
+      "tooManyCopies": "{name} tem {count} cópias no deck principal e sideboard; máximo é {max}.",
+      "tooManyCopiesPitch": "{name} ({pitchLabel}) tem {count} cópias no deck principal e sideboard; máximo é {max} por cor/pitch.",
+      "weaponWrongZone": "{name} é uma arma — deve ficar na fileira de armas, não nos slots de armadura.",
+      "equipmentWrongZone": "{name} é armadura ou off-hand — pertence aos slots de equipamento, não à fileira de armas.",
+      "cardNotArenaGear": "{name} não é equipamento de herói nem arma; deixe no deck principal ou sideboard.",
+      "invalidWeaponLoadout2hWithOther": "Arma de duas mãos não pode ir junto com outra arma ou off-hand. Mova uma para o sideboard.",
+      "invalidWeaponLoadoutTooMany2h": "No máximo uma arma de duas mãos na arena.",
+      "invalidWeaponLoadoutTooManyOffhand": "No máximo um item off-hand na arena.",
+      "invalidWeaponLoadoutHands": "Armas de uma mão e off-hand demais na arena (máx. dois espaços de mão; 2H ocupa os dois)."
     },
     "fabraryImport": {
       "title": "Importar do FaBrary",
-      "hint": "Cole o texto completo do FaBrary (Copiar lista). Com a conta conectada, o deck é salvo logo após a importação e você vai para a página dele. Imagens e nomes vêm do JSON FabCube no banco — como admin, rode POST /api/cards/admin/sync-fabcube antes (ou use FABCUBE_CARD_FLATTENED_URL para branches PEN/Omens).",
+      "hint": "Cole o texto completo do FaBrary (Copiar lista). O construtor preenche nome, formato, herói e cartas — revise e clique em Salvar quando quiser. Imagens e nomes vêm do JSON FabCube no banco — como admin, rode POST /api/cards/admin/sync-fabcube antes (ou use FABCUBE_CARD_FLATTENED_URL para branches PEN/Omens).",
       "placeholder": "Name: …\nHero: …\nFormat: …\n\nArena cards\n…\n\nDeck cards\n…",
       "import": "Importar deck",
       "importing": "Importando…",
-      "importingDetail": "Resolvendo cartas na base de dados e guardando o deck — listas grandes podem levar alguns segundos.",
+      "importingDetail": "Resolvendo cartas na base de dados — listas grandes podem levar alguns segundos.",
       "needLogin": "Entre na conta para importar uma lista.",
       "failed": "Falha na importação",
       "partialImport": "{count} linha(s) não encontradas: {preview}"

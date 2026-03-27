@@ -58,6 +58,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setAccessToken(stored);
     apiFetch<{ user: User }>("/auth/me", {
       headers: { Authorization: `Bearer ${stored}` },
+      signal: AbortSignal.timeout(12_000),
     })
       .then((data) => setUser(data.user))
       .catch(() => clearTokens())

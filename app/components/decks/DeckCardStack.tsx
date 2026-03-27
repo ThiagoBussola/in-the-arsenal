@@ -20,9 +20,7 @@ export function DeckCardStack({
 }: DeckCardStackProps) {
   const q = Math.max(1, quantity);
   const layers = Math.min(q, MAX_STACK_LAYERS);
-  const sliverStep =
-    size === "lg" ? 16 : size === "md" ? 14 : 12;
-  const sliverH = size === "lg" ? 26 : size === "md" ? 24 : 20;
+  const stepY = size === "lg" ? 10 : size === "md" ? 9 : 8;
   const maxW =
     size === "lg"
       ? "max-w-[200px]"
@@ -44,41 +42,52 @@ export function DeckCardStack({
     );
   }
 
+  const backCount = Math.max(0, layers - 1);
+  const stackPadTop = backCount > 0 ? backCount * stepY : 0;
+
   return (
     <div className={`group mx-auto w-full ${maxW} ${className}`}>
       <div
-        className="relative"
+        className="relative flex justify-center"
         style={{
-          paddingTop: layers > 1 ? `${(layers - 1) * sliverStep}px` : undefined,
+          paddingTop: stackPadTop > 0 ? `${stackPadTop}px` : undefined,
         }}
       >
-        {layers > 1 &&
-          Array.from({ length: layers - 1 }).map((_, i) => (
-            <div
-              key={i}
-              className="absolute left-1/2 z-[1] w-[94%] -translate-x-1/2 overflow-hidden rounded-t-[5px] border border-white/12 bg-zinc-950 shadow-md"
-              style={{
-                top: `${i * sliverStep}px`,
-                height: `${sliverH}px`,
-                zIndex: layers - 1 - i,
-              }}
-            >
-              <img
-                src={imageUrl}
-                alt=""
-                className="h-[420%] w-full object-cover object-top"
-                draggable={false}
-              />
-            </div>
-          ))}
+        {backCount > 0 &&
+          Array.from({ length: backCount }).map((_, i) => {
+            const depth = backCount - 1 - i;
+            const widthScale = 0.72 + depth * 0.09;
+            const top = i * stepY;
+            return (
+              <div
+                key={i}
+                className="pointer-events-none absolute left-1/2 overflow-hidden rounded-md border border-white/12 bg-zinc-950 shadow-md shadow-black/40"
+                style={{
+                  top: `${top}px`,
+                  width: `${widthScale * 100}%`,
+                  maxWidth: "100%",
+                  transform: "translateX(-50%)",
+                  aspectRatio: "5 / 7",
+                  zIndex: i + 1,
+                }}
+              >
+                <img
+                  src={imageUrl}
+                  alt=""
+                  className="h-full w-full object-cover object-top"
+                  draggable={false}
+                />
+              </div>
+            );
+          })}
         <div
-          className="relative z-10 overflow-hidden rounded-md border border-white/18 shadow-lg shadow-black/50"
+          className="relative z-[30] w-full overflow-hidden rounded-md border border-white/20 shadow-xl shadow-black/55"
           style={{ aspectRatio: "5 / 7" }}
         >
           <img
             src={imageUrl}
             alt={card.name}
-            className="h-full w-full object-cover"
+            className="h-full w-full object-cover object-top"
             draggable={false}
           />
           {q > 1 && (

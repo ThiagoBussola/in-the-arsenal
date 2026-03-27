@@ -3,6 +3,7 @@ import {
   cardService,
   normalizeCardSearchName,
 } from "./CardService";
+import { rebalanceFabraryArenaWeaponZones } from "../rules/arenaWeaponLoadout";
 
 const PITCH_FROM_COLOR: Record<string, string> = {
   red: "1",
@@ -197,7 +198,11 @@ export class FabraryImportService {
       }
     }
 
-    const processLine = (pl: FabraryParsedLine, forceZone: CardZone | null) => {
+    const pushResolvedLine = (
+      pl: FabraryParsedLine,
+      forceZone: CardZone | null,
+      target: FabraryImportResult["entries"],
+    ) => {
       const card = getResolved(pl.name, pl.pitch);
       if (!card) {
         unresolved.push({
@@ -209,7 +214,7 @@ export class FabraryImportService {
         return;
       }
       const zone = forceZone ?? inferZone(card);
-      entries.push({
+      target.push({
         uniqueId: card.uniqueId,
         quantity: pl.quantity,
         zone,
@@ -217,12 +222,15 @@ export class FabraryImportService {
       });
     };
 
+    const arenaChunk: FabraryImportResult["entries"] = [];
     for (const pl of parsed.arenaLines) {
-      processLine(pl, null);
+      pushResolvedLine(pl, null, arenaChunk);
     }
+    rebalanceFabraryArenaWeaponZones(arenaChunk);
+    entries.push(...arenaChunk);
 
     for (const pl of parsed.deckLines) {
-      processLine(pl, CardZone.MAIN);
+      pushResolvedLine(pl, CardZone.MAIN, entries);
     }
 
     return {

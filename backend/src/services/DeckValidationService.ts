@@ -5,6 +5,12 @@ import {
   extractHeroDeckIdentity,
   classifyDeckIdentityViolation,
 } from "../rules/fabDeckIdentity";
+import {
+  classifyHandSlotItem,
+  isHandLoadoutValid,
+  summarizeHandLoadout,
+  type HandSlotKind,
+} from "../rules/arenaWeaponLoadout";
 
 export interface ValidationError {
   code: string;
@@ -95,6 +101,8 @@ export class DeckValidationService {
     this.validateFormatLegality(entries, rules, errors);
     this.validateClassRestrictions(hero, entries, errors);
     this.validateEquipmentSlots(entries, errors);
+    this.validateArenaGearZones(entries, errors);
+    this.validateWeaponLoadout(entries, errors);
 
     if (rules.rarityRestriction) {
       this.validateRarityRestrictions(entries, rules.rarityRestriction, errors);
@@ -184,24 +192,47 @@ export class DeckValidationService {
     }
   }
 
+  private copyLimitGroupKey(card: CardCache): string {
+    const p = (card.pitch ?? "").trim();
+    return `${card.name}\u0001${p}`;
+  }
+
   private validateCopyLimits(
     entries: DeckEntry[],
     rules: FormatRules,
     errors: ValidationError[]
   ) {
-    const countByName = new Map<string, number>();
+    const countByGroup = new Map<
+      string,
+      { name: string; pitch: string | null; count: number }
+    >();
 
     for (const entry of entries) {
-      const key = entry.card.name;
-      countByName.set(key, (countByName.get(key) || 0) + entry.quantity);
+      if (
+        entry.zone !== CardZone.MAIN &&
+        entry.zone !== CardZone.SIDEBOARD
+      ) {
+        continue;
+      }
+      const key = this.copyLimitGroupKey(entry.card);
+      const prev = countByGroup.get(key);
+      const nextCount = (prev?.count ?? 0) + entry.quantity;
+      countByGroup.set(key, {
+        name: entry.card.name,
+        pitch: entry.card.pitch,
+        count: nextCount,
+      });
     }
 
-    for (const [name, count] of countByName) {
+    for (const { name, pitch, count } of countByGroup.values()) {
       if (count > rules.maxCopies) {
+        const pitchPart = pitch?.trim()
+          ? ` (pitch ${pitch})`
+          : "";
         errors.push({
           code: "TOO_MANY_COPIES",
           severity: "error",
-          message: `${name} has ${count} copies, maximum is ${rules.maxCopies}`,
+          message: `${name}${pitchPart} has ${count} copies in main/sideboard, maximum is ${rules.maxCopies} per pitch`,
           cardName: name,
         });
       }
@@ -277,6 +308,57 @@ export class DeckValidationService {
     }
   }
 
+  /** Aligns with frontend `inferArenaZoneFromCard` — weapons vs armor slots. */
+  private inferArenaZoneFromCard(card: CardCache): CardZone | null {
+    const types = Array.isArray(card.types) ? card.types : [];
+    const isHero = types.includes("Hero");
+    const tt = (card.typeText ?? "").toLowerCase();
+    const isWeapon =
+      types.includes("Weapon") || (!isHero && /\bweapon\b/i.test(tt));
+    const isEquipment =
+      types.includes("Equipment") ||
+      (!isHero && !isWeapon && /\bequipment\b/i.test(tt));
+    if (isWeapon) return CardZone.WEAPON;
+    if (isEquipment) return CardZone.EQUIPMENT;
+    return null;
+  }
+
+  private validateArenaGearZones(
+    entries: DeckEntry[],
+    errors: ValidationError[]
+  ) {
+    for (const e of entries) {
+      const arenaType = this.inferArenaZoneFromCard(e.card);
+      if (e.zone === CardZone.EQUIPMENT && arenaType === CardZone.WEAPON) {
+        errors.push({
+          code: "WEAPON_WRONG_ZONE",
+          severity: "error",
+          message: `${e.card.name} is a weapon and must be in the weapon zone, not equipment slots.`,
+          cardName: e.card.name,
+        });
+      }
+      if (e.zone === CardZone.WEAPON && arenaType === CardZone.EQUIPMENT) {
+        errors.push({
+          code: "EQUIPMENT_WRONG_ZONE",
+          severity: "error",
+          message: `${e.card.name} belongs in equipment slots, not the weapon zone.`,
+          cardName: e.card.name,
+        });
+      }
+      if (
+        (e.zone === CardZone.WEAPON || e.zone === CardZone.EQUIPMENT) &&
+        !arenaType
+      ) {
+        errors.push({
+          code: "INVALID_ARENA_ZONE_CARD",
+          severity: "error",
+          message: `${e.card.name} is not hero equipment or a weapon.`,
+          cardName: e.card.name,
+        });
+      }
+    }
+  }
+
   private validateEquipmentSlots(
     entries: DeckEntry[],
     errors: ValidationError[]
@@ -304,6 +386,55 @@ export class DeckValidationService {
         });
       }
     }
+  }
+
+  /** Arena: at most one 2H alone, or up to two 1H, or one 1H + one off-hand — no mixing 2H with other hand items. */
+  private validateWeaponLoadout(
+    entries: DeckEntry[],
+    errors: ValidationError[]
+  ) {
+    const handItems: Array<{ kind: HandSlotKind; quantity: number }> = [];
+    for (const e of entries) {
+      if (e.quantity <= 0) continue;
+      if (e.zone !== CardZone.WEAPON && e.zone !== CardZone.EQUIPMENT) continue;
+      const kind = classifyHandSlotItem(e.card);
+      if (!kind) continue;
+      handItems.push({ kind, quantity: e.quantity });
+    }
+
+    const { T, H, O } = summarizeHandLoadout(handItems);
+    if (isHandLoadoutValid({ T, H, O })) return;
+
+    if (T >= 1 && (H >= 1 || O >= 1)) {
+      errors.push({
+        code: "INVALID_WEAPON_LOADOUT",
+        severity: "error",
+        message:
+          "A two-handed weapon cannot be equipped with another weapon or an off-hand item. Move one to the sideboard.",
+      });
+      return;
+    }
+    if (T > 1) {
+      errors.push({
+        code: "INVALID_WEAPON_LOADOUT",
+        severity: "error",
+        message: `At most one two-handed weapon in the arena; the loadout uses ${T} two-handed slots.`,
+      });
+      return;
+    }
+    if (O > 1) {
+      errors.push({
+        code: "INVALID_WEAPON_LOADOUT",
+        severity: "error",
+        message: `At most one off-hand item in the arena; found ${O}.`,
+      });
+      return;
+    }
+    errors.push({
+      code: "INVALID_WEAPON_LOADOUT",
+      severity: "error",
+      message: `Too many one-handed weapons and off-hand items (${H + O} hand slots); max 2 combined (e.g. two 1H, or 1H + shield).`,
+    });
   }
 
   private validateRarityRestrictions(

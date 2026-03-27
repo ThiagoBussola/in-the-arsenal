@@ -375,4 +375,138 @@ describe("DeckValidationService — Unit Tests", () => {
     const errors = v.validate(DeckFormat.BLITZ, hero, entries);
     assert.ok(errors.some((e) => e.code === "POOL_TOO_LARGE"));
   });
+
+  it("arena: rejects 2H together with 1H and off-hand", () => {
+    const hero = buildCard({
+      uniqueId: "h",
+      name: "Hero",
+      types: ["Hero", "Guardian"],
+      ccLegal: true,
+    });
+    const oneH = buildCard({
+      uniqueId: "w1",
+      name: "Miller",
+      types: ["Weapon", "Guardian"],
+      typeText: "Guardian Weapon — Hammer (1H)",
+      ccLegal: true,
+    });
+    const twoH = buildCard({
+      uniqueId: "w2",
+      name: "Sledge",
+      types: ["Weapon", "Guardian"],
+      typeText: "Guardian Weapon — Hammer (2H)",
+      ccLegal: true,
+    });
+    const shield = buildCard({
+      uniqueId: "sh",
+      name: "Rampart",
+      types: ["Equipment", "Guardian", "Off-Hand"],
+      typeText: "Guardian Equipment — Off-Hand",
+      ccLegal: true,
+    });
+    const errors = v.validate(DeckFormat.CC, hero, [
+      { card: oneH, quantity: 1, zone: CardZone.WEAPON },
+      { card: twoH, quantity: 1, zone: CardZone.WEAPON },
+      { card: shield, quantity: 1, zone: CardZone.EQUIPMENT },
+    ]);
+    assert.ok(errors.some((e) => e.code === "INVALID_WEAPON_LOADOUT"));
+  });
+
+  it("arena: allows 1H + off-hand", () => {
+    const hero = buildCard({
+      uniqueId: "h",
+      name: "Hero",
+      types: ["Hero", "Guardian"],
+      ccLegal: true,
+    });
+    const oneH = buildCard({
+      uniqueId: "w1",
+      name: "Hammer",
+      types: ["Weapon", "Guardian"],
+      typeText: "(1H)",
+      ccLegal: true,
+    });
+    const shield = buildCard({
+      uniqueId: "sh",
+      name: "Shield",
+      types: ["Equipment", "Off-Hand"],
+      ccLegal: true,
+    });
+    const errors = v.validate(DeckFormat.CC, hero, [
+      { card: oneH, quantity: 1, zone: CardZone.WEAPON },
+      { card: shield, quantity: 1, zone: CardZone.EQUIPMENT },
+    ]);
+    assert.ok(!errors.some((e) => e.code === "INVALID_WEAPON_LOADOUT"));
+  });
+
+  it("arena: allows two 1H weapons", () => {
+    const hero = buildCard({
+      uniqueId: "h",
+      name: "Hero",
+      types: ["Hero", "Warrior"],
+      ccLegal: true,
+    });
+    const a = buildCard({
+      uniqueId: "w1",
+      name: "Sword A",
+      types: ["Weapon", "Warrior"],
+      typeText: "Warrior Weapon — Sword (1H)",
+      ccLegal: true,
+    });
+    const b = buildCard({
+      uniqueId: "w2",
+      name: "Sword B",
+      types: ["Weapon", "Warrior"],
+      typeText: "Warrior Weapon — Sword (1H)",
+      ccLegal: true,
+    });
+    const errors = v.validate(DeckFormat.CC, hero, [
+      { card: a, quantity: 1, zone: CardZone.WEAPON },
+      { card: b, quantity: 1, zone: CardZone.WEAPON },
+    ]);
+    assert.ok(!errors.some((e) => e.code === "INVALID_WEAPON_LOADOUT"));
+  });
+
+  it("arena: allows lone 2H weapon", () => {
+    const hero = buildCard({
+      uniqueId: "h",
+      name: "Hero",
+      types: ["Hero", "Guardian"],
+      ccLegal: true,
+    });
+    const twoH = buildCard({
+      uniqueId: "w2",
+      name: "Sledge",
+      types: ["Weapon", "Guardian"],
+      typeText: "(2H)",
+      ccLegal: true,
+    });
+    const errors = v.validate(DeckFormat.CC, hero, [
+      { card: twoH, quantity: 1, zone: CardZone.WEAPON },
+    ]);
+    assert.ok(!errors.some((e) => e.code === "INVALID_WEAPON_LOADOUT"));
+  });
+
+  it("arena: rejects three 1H weapons", () => {
+    const hero = buildCard({
+      uniqueId: "h",
+      name: "Hero",
+      types: ["Hero", "Warrior"],
+      ccLegal: true,
+    });
+    const mk = (id: string, n: string) =>
+      buildCard({
+        uniqueId: id,
+        name: n,
+        types: ["Weapon", "Warrior"],
+        typeText: "(1H)",
+        ccLegal: true,
+      });
+    const errors = v.validate(DeckFormat.CC, hero, [
+      { card: mk("a", "A"), quantity: 1, zone: CardZone.WEAPON },
+      { card: mk("b", "B"), quantity: 1, zone: CardZone.WEAPON },
+      { card: mk("c", "C"), quantity: 1, zone: CardZone.WEAPON },
+    ]);
+    assert.ok(errors.some((e) => e.code === "INVALID_WEAPON_LOADOUT"));
+  });
 });

@@ -1,7 +1,8 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import type { CardData } from "../../lib/types";
+import type { CardData, CardZone } from "../../lib/types";
+import { setDeckDragData } from "../../lib/deck-dnd";
 
 interface EquipmentSlot {
   slot: string;
@@ -12,8 +13,16 @@ interface EquipmentSlotsProps {
   equipment: EquipmentSlot[];
   weapons: CardData[];
   onRemove: (cardUniqueId: string) => void;
+  /** Drag arena cards into main/sideboard (same as DeckList DnD). */
+  onMoveToZone?: (cardUniqueId: string, zone: CardZone) => void;
+  /** Tooltip on draggable arena cards */
+  dragHint?: string;
   /** Single scrollable/wrapping row with small card art — for top arena bar. */
   compact?: boolean;
+}
+
+function arenaQuickBtnClass() {
+  return "pointer-events-auto z-10 rounded-sm border border-gold/30 bg-black/90 px-1 py-0.5 font-heading text-[8px] font-semibold tracking-wide text-gold uppercase hover:bg-gold/15";
 }
 
 const SLOT_ICONS: Record<string, string> = {
@@ -23,13 +32,23 @@ const SLOT_ICONS: Record<string, string> = {
   Legs: "🦶",
 };
 
+const SLOT_LABEL_KEYS = {
+  Head: "slotHead",
+  Chest: "slotChest",
+  Arms: "slotArms",
+  Legs: "slotLegs",
+} as const;
+
 export function EquipmentSlots({
   equipment,
   weapons,
   onRemove,
+  onMoveToZone,
+  dragHint = "",
   compact = false,
 }: EquipmentSlotsProps) {
   const t = useTranslations("deckBuilder.equipment");
+  const tList = useTranslations("deckBuilder.deckList");
 
   if (compact) {
     return (
@@ -38,15 +57,25 @@ export function EquipmentSlots({
           {equipment.map(({ slot, card }) => (
             <div
               key={slot}
+              draggable={Boolean(card)}
+              title={card ? dragHint : undefined}
+              onDragStart={
+                card
+                  ? (e) => setDeckDragData(e, card.uniqueId, "EQUIPMENT")
+                  : undefined
+              }
               className={`group relative flex w-[4.5rem] shrink-0 flex-col items-center rounded-sm border p-1.5 sm:w-[5.25rem] ${
                 card
-                  ? "border-gold/25 bg-gold/[0.06]"
+                  ? "cursor-grab border-gold/25 bg-gold/[0.06] active:cursor-grabbing"
                   : "border-surface-border border-dashed bg-surface/80"
               }`}
             >
               <span className="text-sm leading-none">{SLOT_ICONS[slot] || "⬜"}</span>
               <span className="mt-0.5 text-[9px] font-medium tracking-wider text-muted uppercase">
-                {slot}
+                {t(
+                  SLOT_LABEL_KEYS[slot as keyof typeof SLOT_LABEL_KEYS] ??
+                    "slotHead",
+                )}
               </span>
               {card ? (
                 <>
@@ -54,12 +83,36 @@ export function EquipmentSlots({
                     <img
                       src={card.imageUrl}
                       alt=""
+                      draggable={false}
                       className="mt-1 h-[4.5rem] w-full max-w-[3.25rem] rounded-[3px] object-cover object-top"
                     />
                   ) : null}
                   <p className="mt-1 line-clamp-2 text-center text-[9px] font-medium leading-tight text-foreground">
                     {card.name}
                   </p>
+                  {onMoveToZone && (
+                    <div
+                      className="mt-1 flex w-full flex-wrap justify-center gap-0.5 opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
+                      onMouseDown={(ev) => ev.stopPropagation()}
+                    >
+                      <button
+                        type="button"
+                        draggable={false}
+                        className={arenaQuickBtnClass()}
+                        onClick={() => onMoveToZone(card.uniqueId, "MAIN")}
+                      >
+                        {tList("toMain")}
+                      </button>
+                      <button
+                        type="button"
+                        draggable={false}
+                        className={arenaQuickBtnClass()}
+                        onClick={() => onMoveToZone(card.uniqueId, "SIDEBOARD")}
+                      >
+                        {tList("toSide")}
+                      </button>
+                    </div>
+                  )}
                   <button
                     type="button"
                     onClick={() => onRemove(card.uniqueId)}
@@ -73,35 +126,71 @@ export function EquipmentSlots({
               )}
             </div>
           ))}
-
-          {weapons.map((w) => (
-            <div
-              key={w.uniqueId}
-              className="group relative flex w-[4.75rem] shrink-0 flex-col items-center rounded-sm border border-gold/20 bg-gold/[0.06] p-1 sm:w-[5.5rem]"
-            >
-              <span className="text-[9px] text-muted" aria-hidden title={t("weapons")}>
-                ⚔
-              </span>
-              {w.imageUrl ? (
-                <img
-                  src={w.imageUrl}
-                  alt=""
-                  className="mt-0.5 h-[4.75rem] w-full max-w-[3.35rem] rounded-[3px] object-cover object-top"
-                />
-              ) : null}
-              <p className="mt-1 line-clamp-2 text-center text-[9px] font-medium leading-tight text-foreground">
-                {w.name}
-              </p>
-              <button
-                type="button"
-                onClick={() => onRemove(w.uniqueId)}
-                className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-crimson/85 text-[8px] text-white opacity-0 transition-opacity group-hover:opacity-100"
-              >
-                ✕
-              </button>
-            </div>
-          ))}
         </div>
+
+        {weapons.length > 0 ? (
+          <div className="-mx-1 rounded-sm border border-surface-border border-dashed bg-surface/80 p-2 sm:p-2.5">
+            <p className="mb-2 text-center text-[9px] font-medium tracking-wider text-muted uppercase sm:text-left">
+              {t("weapons")}
+            </p>
+            <div className="flex min-w-0 flex-wrap items-end justify-center gap-2 sm:justify-start sm:gap-3">
+              {weapons.map((w) => (
+                <div
+                  key={w.uniqueId}
+                  draggable
+                  title={dragHint}
+                  onDragStart={(e) => setDeckDragData(e, w.uniqueId, "WEAPON")}
+                  className="group relative flex w-[4.75rem] shrink-0 cursor-grab flex-col items-center rounded-sm border border-gold/25 bg-gold/[0.06] p-1.5 active:cursor-grabbing sm:w-[5.5rem]"
+                >
+                  <span className="text-sm leading-none" aria-hidden>
+                    ⚔
+                  </span>
+                  {w.imageUrl ? (
+                    <img
+                      src={w.imageUrl}
+                      alt=""
+                      draggable={false}
+                      className="mt-1 h-[4.5rem] w-full max-w-[3.25rem] rounded-[3px] object-cover object-top"
+                    />
+                  ) : null}
+                  <p className="mt-1 line-clamp-2 text-center text-[9px] font-medium leading-tight text-foreground">
+                    {w.name}
+                  </p>
+                  {onMoveToZone && (
+                    <div
+                      className="mt-1 flex w-full flex-wrap justify-center gap-0.5 opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
+                      onMouseDown={(ev) => ev.stopPropagation()}
+                    >
+                      <button
+                        type="button"
+                        draggable={false}
+                        className={arenaQuickBtnClass()}
+                        onClick={() => onMoveToZone(w.uniqueId, "MAIN")}
+                      >
+                        {tList("toMain")}
+                      </button>
+                      <button
+                        type="button"
+                        draggable={false}
+                        className={arenaQuickBtnClass()}
+                        onClick={() => onMoveToZone(w.uniqueId, "SIDEBOARD")}
+                      >
+                        {tList("toSide")}
+                      </button>
+                    </div>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => onRemove(w.uniqueId)}
+                    className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-crimson/85 text-[8px] text-white opacity-0 transition-opacity group-hover:opacity-100"
+                  >
+                    ✕
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : null}
       </div>
     );
   }
@@ -124,7 +213,10 @@ export function EquipmentSlots({
           >
             <span className="text-lg">{SLOT_ICONS[slot] || "⬜"}</span>
             <span className="mt-1 text-[10px] font-medium tracking-wider text-muted uppercase">
-              {slot}
+              {t(
+                SLOT_LABEL_KEYS[slot as keyof typeof SLOT_LABEL_KEYS] ??
+                  "slotHead",
+              )}
             </span>
             {card ? (
               <>

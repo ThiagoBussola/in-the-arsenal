@@ -7,28 +7,61 @@ interface CardPreviewProps {
   card: CardData;
   heroCardId?: string | null;
   format?: string;
+  /** Smaller tile for library sidebar */
+  compact?: boolean;
+  onDismiss?: () => void;
 }
 
-export function CardPreview({ card, heroCardId, format }: CardPreviewProps) {
+export function CardPreview({
+  card,
+  heroCardId,
+  format,
+  compact,
+  onDismiss,
+}: CardPreviewProps) {
+  const imgClass = compact
+    ? "h-[200px] w-[140px] rounded-md border border-surface-border object-contain shadow-md shadow-black/30"
+    : "h-[350px] w-[250px] rounded-lg border border-surface-border object-contain shadow-lg shadow-black/40";
+  const placeholderClass = compact
+    ? "flex h-[200px] w-[140px] items-center justify-center rounded-md border border-surface-border bg-surface text-xs text-muted"
+    : "flex h-[350px] w-[250px] items-center justify-center rounded-lg border border-surface-border bg-surface text-muted";
+  const metaMax = compact ? "max-w-[180px]" : "max-w-[250px]";
+
   return (
-    <div className="flex flex-col items-center gap-3">
+    <div className="relative flex flex-col items-center gap-3">
+      {onDismiss ? (
+        <button
+          type="button"
+          onClick={onDismiss}
+          className="absolute -right-1 -top-1 z-10 flex h-6 w-6 items-center justify-center rounded-full border border-surface-border bg-background/95 text-xs text-muted shadow-sm transition-colors hover:border-gold/40 hover:text-foreground"
+          aria-label="Close preview"
+        >
+          ✕
+        </button>
+      ) : null}
       {card.imageUrl ? (
         <img
           src={card.imageUrl}
           alt={card.name}
-          className="h-[350px] w-[250px] rounded-lg border border-surface-border object-contain shadow-lg shadow-black/40"
+          className={imgClass}
         />
       ) : (
-        <div className="flex h-[350px] w-[250px] items-center justify-center rounded-lg border border-surface-border bg-surface text-muted">
+        <div className={placeholderClass}>
           No Image
         </div>
       )}
 
-      <div className="w-full max-w-[250px] space-y-2 text-center">
-        <h3 className="font-heading text-sm font-semibold text-foreground">{card.name}</h3>
-        <p className="text-xs text-muted">{card.typeText}</p>
+      <div className={`w-full ${metaMax} space-y-2 text-center`}>
+        <h3
+          className={`font-heading font-semibold text-foreground ${compact ? "text-xs leading-snug" : "text-sm"}`}
+        >
+          {card.name}
+        </h3>
+        <p className={`text-muted ${compact ? "text-[10px] leading-relaxed" : "text-xs"}`}>
+          {card.typeText}
+        </p>
 
-        <div className="flex justify-center gap-3 text-xs">
+        <div className={`flex justify-center flex-wrap gap-2 ${compact ? "gap-1.5 text-[10px]" : "gap-3 text-xs"}`}>
           {card.cost !== null && (
             <span className="rounded border border-surface-border bg-surface px-2 py-0.5 text-gold">
               Cost {card.cost}

@@ -78,6 +78,24 @@ export const FORMAT_LABELS: Record<DeckFormat, string> = {
   SAGE: "SAGE",
 };
 
+/** Max copies of the same card name **per pitch** in main + sideboard (FaB pitch stacking). */
+export const FORMAT_MAX_COPIES: Record<DeckFormat, number> = {
+  CC: 3,
+  BLITZ: 3,
+  COMMONER: 3,
+  LL: 3,
+  SAGE: 2,
+};
+
+/** Group key for copy limits: name + pitch (empty pitch groups non-pitch cards together). */
+export function copyLimitGroupKey(
+  name: string,
+  pitch: string | null | undefined,
+): string {
+  const p = (pitch ?? "").trim();
+  return `${name}\u0001${p}`;
+}
+
 export const ZONE_LABELS: Record<CardZone, string> = {
   MAIN: "Main Deck",
   EQUIPMENT: "Equipment",

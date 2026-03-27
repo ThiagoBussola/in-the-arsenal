@@ -69,12 +69,24 @@
     "saveFailed": "Could not save the deck. Try again.",
     "loadingDeck": "Loading deck…",
     "loadDeckFailed": "Could not load this deck for editing.",
+    "notOwnerEdit": "You can only edit your own decks. Public decks stay read-only for other players.",
     "defaultImportedName": "Imported deck",
     "signInToSave": "Sign in",
     "descriptionPlaceholder": "Deck description (optional)...",
     "heroAndArena": "Hero + arena",
+    "dropArenaStrip": "Drop a main or sideboard weapon/equipment card here to move it onto your hero.",
     "cardSearch": {
-      "placeholder": "Search cards by name..."
+      "placeholder": "Search cards by name...",
+      "noResults": "No cards match that name.",
+      "sidebarHint": "Type at least 2 letters to search the library.",
+      "alreadyEquipped": "This card is already in your arena. Equipment and weapons can only be added once each.",
+      "libraryTitle": "Library"
+    },
+    "deckView": {
+      "gallery": "Gallery",
+      "list": "List",
+      "deckWorkspace": "Deck",
+      "toggleLabel": "Deck view mode"
     },
     "heroSelector": {
       "title": "Hero",
@@ -84,14 +96,22 @@
     "equipment": {
       "title": "Equipment",
       "empty": "Empty",
-      "weapons": "Weapons"
+      "weapons": "Weapons",
+      "slotHead": "Head",
+      "slotChest": "Chest",
+      "slotArms": "Arms",
+      "slotLegs": "Legs",
+      "dragToDeck": "Drag into main deck or sideboard below — or use Main / Side buttons"
     },
     "deckList": {
       "mainDeck": "Main Deck",
       "sideboard": "Sideboard",
       "emptyMain": "No cards in main deck yet",
       "emptySide": "Drag cards here from the main deck to add them to your sideboard",
-      "dragCard": "Drag to move between main deck and sideboard"
+      "dragCard": "Drag between main deck, sideboard, and hero arena",
+      "toMain": "Main",
+      "toSide": "Side",
+      "toArena": "Arena"
     },
     "validation": {
       "title": "Validation",
@@ -100,15 +120,26 @@
       "warnings": "warnings",
       "noHero": "A hero must be selected",
       "tooFewCards": "Main deck has {count} cards, minimum is {min}",
-      "tooManyCopies": "{name} has {count} copies, maximum is 3"
+      "pitch1": "red",
+      "pitch2": "yellow",
+      "pitch3": "blue",
+      "tooManyCopies": "{name} has {count} copies in main deck and sideboard; maximum is {max}.",
+      "tooManyCopiesPitch": "{name} ({pitchLabel}) has {count} copies in main deck and sideboard; maximum is {max} per pitch.",
+      "weaponWrongZone": "{name} is a weapon — it must sit in the weapon row, not armor slots.",
+      "equipmentWrongZone": "{name} is armor or off-hand gear — it belongs in equipment slots, not the weapon row.",
+      "cardNotArenaGear": "{name} is not hero equipment or a weapon; keep it in the main deck or sideboard.",
+      "invalidWeaponLoadout2hWithOther": "A two-handed weapon cannot be equipped with another weapon or off-hand piece. Move one to the sideboard.",
+      "invalidWeaponLoadoutTooMany2h": "At most one two-handed weapon in the arena.",
+      "invalidWeaponLoadoutTooManyOffhand": "At most one off-hand item in the arena.",
+      "invalidWeaponLoadoutHands": "Too many one-handed weapons and off-hand items in the arena (max two hand slots; a 2H weapon uses both)."
     },
     "fabraryImport": {
       "title": "Import from FaBrary",
-      "hint": "Paste the full text from FaBrary (Copy list to clipboard). When you are signed in, the deck is saved right after a successful import and you are sent to its page. Card images and names come from the FabCube JSON in your database — run POST /api/cards/admin/sync-fabcube as admin first (or set FABCUBE_CARD_FLATTENED_URL for PEN/Omens branches).",
+      "hint": "Paste the full text from FaBrary (Copy list to clipboard). The builder fills with name, format, hero, and cards — review and click Save when ready. Card images and names come from the FabCube JSON in your database — run POST /api/cards/admin/sync-fabcube as admin first (or set FABCUBE_CARD_FLATTENED_URL for PEN/Omens branches).",
       "placeholder": "Name: …\nHero: …\nFormat: …\n\nArena cards\n…\n\nDeck cards\n…",
       "import": "Import deck",
       "importing": "Importing…",
-      "importingDetail": "Resolving cards in the database and saving your deck — this can take a few seconds for large lists.",
+      "importingDetail": "Resolving cards in the database — this can take a few seconds for large lists.",
       "needLogin": "Sign in to import a deck list.",
       "failed": "Import failed",
       "partialImport": "{count} line(s) could not be matched: {preview}"
