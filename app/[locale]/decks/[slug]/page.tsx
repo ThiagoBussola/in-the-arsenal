@@ -149,14 +149,14 @@ export default function DeckViewerPage({
   return (
     <div className="flex min-h-screen flex-col bg-background">
       <nav className="sticky top-0 z-40 border-b border-surface-border/50 bg-background/90 backdrop-blur-md">
-        <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-6">
+        <div className="mx-auto flex h-auto min-h-14 max-w-6xl flex-wrap items-center justify-between gap-x-4 gap-y-2 px-4 py-2 sm:px-6">
           <Link
             href="/"
             className="font-heading text-sm font-semibold tracking-wider text-gold transition-colors hover:text-gold-bright"
           >
             In the Arsenal
           </Link>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3 sm:gap-4">
             <Link
               href="/decks"
               className="text-sm text-muted transition-colors hover:text-foreground"
@@ -168,7 +168,7 @@ export default function DeckViewerPage({
         </div>
       </nav>
 
-      <main className="mx-auto w-full max-w-6xl px-6 py-8">
+      <main className="mx-auto w-full max-w-6xl px-4 py-6 sm:px-6 sm:py-8">
         <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-start sm:gap-6">
           {viewMode === "list" && heroCard?.imageUrl && (
             <img
@@ -180,7 +180,7 @@ export default function DeckViewerPage({
           <div className="flex min-w-0 flex-1 flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
             <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-3">
-              <h1 className="font-heading text-2xl font-bold tracking-wide text-foreground">
+              <h1 className="font-heading text-xl font-bold tracking-wide text-foreground sm:text-2xl">
                 {deck.name}
               </h1>
               <span className="rounded-sm border border-gold/30 px-2.5 py-0.5 text-xs font-medium text-gold">
@@ -277,9 +277,9 @@ export default function DeckViewerPage({
                 <h2 className="mb-4 font-heading text-xs font-semibold tracking-[0.2em] text-gold uppercase">
                   {t("heroAndArena")} ({heroArenaQty})
                 </h2>
-                <div className="grid grid-cols-2 justify-items-center gap-x-4 gap-y-10 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
+                <div className="grid grid-cols-3 justify-items-center gap-x-3 gap-y-8 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
                   {deck.heroCardId && (
-                    <div className="w-full max-w-[200px]">
+                    <div className="w-full max-w-[160px] sm:max-w-[200px]">
                       <DeckCardStack
                         card={heroCard ?? null}
                         quantity={1}
@@ -290,7 +290,7 @@ export default function DeckViewerPage({
                   {weaponEntries.map((dc) => (
                     <div
                       key={dc.id || dc.cardUniqueId}
-                      className="w-full max-w-[168px]"
+                      className="w-full max-w-[132px] sm:max-w-[168px]"
                     >
                       <DeckCardStack
                         card={dc.card}
@@ -302,7 +302,7 @@ export default function DeckViewerPage({
                   {equipmentEntries.map((dc) => (
                     <div
                       key={dc.id || dc.cardUniqueId}
-                      className="w-full max-w-[168px]"
+                      className="w-full max-w-[132px] sm:max-w-[168px]"
                     >
                       <DeckCardStack
                         card={dc.card}
@@ -321,7 +321,7 @@ export default function DeckViewerPage({
                   {t("deckSection")} (
                   {mainEntries.reduce((s, c) => s + c.quantity, 0)})
                 </h2>
-                <div className="grid grid-cols-2 gap-x-3 gap-y-8 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-7">
+                <div className="grid grid-cols-3 gap-x-2 gap-y-6 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7">
                   {mainEntries.map((dc) => (
                     <DeckCardStack
                       key={dc.id || dc.cardUniqueId}
@@ -340,7 +340,7 @@ export default function DeckViewerPage({
                   {ZONE_LABELS.SIDEBOARD} (
                   {sideEntries.reduce((s, c) => s + c.quantity, 0)})
                 </h2>
-                <div className="grid grid-cols-2 gap-x-3 gap-y-8 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-7">
+                <div className="grid grid-cols-3 gap-x-2 gap-y-6 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7">
                   {sideEntries.map((dc) => (
                     <DeckCardStack
                       key={dc.id || dc.cardUniqueId}
@@ -354,7 +354,7 @@ export default function DeckViewerPage({
             )}
           </div>
         ) : (
-          <div className="grid gap-8 lg:grid-cols-2">
+          <div className="grid gap-6 sm:gap-8 lg:grid-cols-2">
             {groupedCards
               .filter((g) => g.cards.length > 0)
               .map(({ zone, label, cards }) => (
@@ -411,7 +411,7 @@ export default function DeckViewerPage({
         )}
       </main>
 
-      <footer className="mt-auto border-t border-surface-border/50 bg-background px-6 py-6">
+      <footer className="mt-auto border-t border-surface-border/50 bg-background px-4 py-6 sm:px-6">
         <div className="mx-auto flex max-w-6xl items-center justify-between">
           <p className="font-heading text-xs tracking-widest text-muted/60 uppercase">
             In the Arsenal &copy; {new Date().getFullYear()}

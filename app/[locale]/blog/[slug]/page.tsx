@@ -46,14 +46,14 @@ export default function BlogPostPage() {
   return (
     <div className="flex min-h-screen flex-col bg-background">
       <nav className="sticky top-0 z-50 border-b border-surface-border/50 bg-background/80 backdrop-blur-md">
-        <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
+        <div className="mx-auto flex h-auto min-h-14 max-w-6xl flex-wrap items-center justify-between gap-x-4 gap-y-2 px-4 py-2 sm:px-6">
           <Link
             href="/"
-            className="font-heading text-lg font-semibold tracking-wider text-gold transition-colors hover:text-gold-bright"
+            className="font-heading text-base font-semibold tracking-wider text-gold transition-colors hover:text-gold-bright sm:text-lg"
           >
             In the Arsenal
           </Link>
-          <div className="flex items-center gap-6 text-sm text-muted">
+          <div className="flex flex-wrap items-center gap-3 text-sm text-muted sm:gap-4">
             <Link
               href="/blog"
               className="transition-colors hover:text-foreground"
@@ -62,7 +62,7 @@ export default function BlogPostPage() {
             </Link>
             <Link
               href="/decks"
-              className="transition-colors hover:text-foreground"
+              className="hidden transition-colors hover:text-foreground sm:inline"
             >
               {tNav("decks")}
             </Link>
@@ -72,7 +72,7 @@ export default function BlogPostPage() {
         </div>
       </nav>
 
-      <main className="mx-auto w-full max-w-3xl flex-1 px-6 py-12">
+      <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-8 sm:px-6 sm:py-12">
         {loading ? (
           <div className="flex items-center justify-center py-20">
             <div className="h-8 w-8 animate-spin rounded-full border-2 border-gold/30 border-t-gold" />
@@ -100,7 +100,7 @@ export default function BlogPostPage() {
             )}
 
             <header className="mb-8">
-              <h1 className="mb-4 font-heading text-4xl font-bold leading-tight tracking-wide text-foreground">
+              <h1 className="mb-4 font-heading text-2xl font-bold leading-tight tracking-wide text-foreground sm:text-3xl md:text-4xl">
                 {post.title}
               </h1>
 
@@ -150,7 +150,7 @@ export default function BlogPostPage() {
         )}
       </main>
 
-      <footer className="border-t border-surface-border/50 bg-background px-6 py-10">
+      <footer className="border-t border-surface-border/50 bg-background px-4 py-8 sm:px-6 sm:py-10">
         <div className="mx-auto flex max-w-6xl flex-col items-center gap-4 sm:flex-row sm:justify-between">
           <p className="font-heading text-xs tracking-widest text-muted/60 uppercase">
             In the Arsenal &copy; {new Date().getFullYear()}

@@ -107,17 +107,17 @@ export default function BlogListPage() {
   return (
     <div className="flex min-h-screen flex-col bg-background">
       <nav className="sticky top-0 z-50 border-b border-surface-border/50 bg-background/80 backdrop-blur-md">
-        <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
+        <div className="mx-auto flex h-auto min-h-14 max-w-6xl flex-wrap items-center justify-between gap-x-4 gap-y-2 px-4 py-2 sm:px-6">
           <Link
             href="/"
-            className="font-heading text-lg font-semibold tracking-wider text-gold transition-colors hover:text-gold-bright"
+            className="font-heading text-base font-semibold tracking-wider text-gold transition-colors hover:text-gold-bright sm:text-lg"
           >
             In the Arsenal
           </Link>
-          <div className="flex items-center gap-6 text-sm text-muted">
+          <div className="flex flex-wrap items-center gap-3 text-sm text-muted sm:gap-4">
             <Link
               href="/"
-              className="transition-colors hover:text-foreground"
+              className="hidden transition-colors hover:text-foreground sm:inline"
             >
               {tNav("home")}
             </Link>
@@ -145,7 +145,7 @@ export default function BlogListPage() {
             <ScrollTextIcon className="h-8 w-8 text-gold" />
             <SparklesIcon className="h-4 w-4 text-gold/50" />
           </div>
-          <h1 className="font-heading text-4xl font-bold tracking-wide text-foreground sm:text-5xl">
+          <h1 className="font-heading text-2xl font-bold tracking-wide text-foreground sm:text-4xl md:text-5xl">
             {t("title")}
           </h1>
           <p className="mt-4 max-w-2xl text-base leading-relaxed text-muted sm:text-lg">
@@ -154,7 +154,7 @@ export default function BlogListPage() {
         </div>
       </header>
 
-      <main className="relative mx-auto w-full max-w-6xl flex-1 px-6 py-12">
+      <main className="relative mx-auto w-full max-w-6xl flex-1 px-4 py-8 sm:px-6 sm:py-12">
         <div className="noise-overlay pointer-events-none absolute inset-0 opacity-40" />
         <div className="relative z-10 mb-10 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <p className="text-sm text-muted">

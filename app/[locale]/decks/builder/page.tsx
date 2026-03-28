@@ -574,17 +574,38 @@ export default function DeckBuilderPage() {
   return (
     <div className="flex min-h-screen flex-col bg-background">
       {/* Top Bar */}
-      <header className="sticky top-0 z-40 flex items-center justify-between border-b border-surface-border/50 bg-background/90 px-4 py-3 backdrop-blur-md">
-        <Link
-          href="/"
-          className="font-heading text-sm font-semibold tracking-wider text-gold"
-        >
-          In the Arsenal
-        </Link>
+      <header className="sticky top-0 z-40 border-b border-surface-border/50 bg-background/90 px-3 py-2 backdrop-blur-md sm:px-4 sm:py-3">
+        <div className="flex items-center justify-between gap-2">
+          <Link
+            href="/"
+            className="shrink-0 font-heading text-sm font-semibold tracking-wider text-gold"
+          >
+            In the Arsenal
+          </Link>
 
-        <div className="flex flex-wrap items-center justify-end gap-3">
+          <div className="hidden items-center gap-2 sm:flex">
+            <button
+              onClick={runValidation}
+              className="rounded-sm border border-gold/30 px-3 py-1.5 font-heading text-xs font-semibold tracking-widest text-gold uppercase transition-all hover:border-gold/60 hover:bg-gold/5 sm:px-4"
+            >
+              {t("validate")}
+            </button>
+
+            <button
+              type="button"
+              disabled={saving || deckName.trim().length < 2}
+              onClick={() => void handleSaveClick()}
+              className="rounded-sm border border-gold/40 bg-gold/10 px-4 py-1.5 font-heading text-xs font-semibold tracking-widest text-gold uppercase transition-all hover:bg-gold/15 disabled:opacity-40"
+            >
+              {saving ? t("saving") : t("save")}
+            </button>
+            <LanguageSwitcher />
+          </div>
+        </div>
+
+        <div className="mt-2 flex flex-wrap items-center gap-2">
           {saveError && (
-            <div className="flex max-w-[220px] flex-col gap-1 text-right">
+            <div className="flex w-full flex-col gap-1 sm:w-auto sm:max-w-[220px] sm:text-right">
               <span className="text-xs text-crimson-bright">{saveError}</span>
               {!accessToken && (
                 <I18nLink
@@ -601,13 +622,13 @@ export default function DeckBuilderPage() {
             value={deckName}
             onChange={(e) => setDeckName(e.target.value)}
             placeholder={t("deckName")}
-            className="w-56 rounded-sm border border-surface-border bg-surface px-3 py-1.5 text-sm text-foreground placeholder:text-muted/50 focus:border-gold/40 focus:outline-none"
+            className="min-w-0 flex-1 rounded-sm border border-surface-border bg-surface px-3 py-1.5 text-sm text-foreground placeholder:text-muted/50 focus:border-gold/40 focus:outline-none sm:max-w-56"
           />
 
           <select
             value={format}
             onChange={(e) => setFormat(e.target.value as DeckFormat)}
-            className="rounded-sm border border-surface-border bg-surface px-3 py-1.5 text-sm text-foreground focus:border-gold/40 focus:outline-none"
+            className="rounded-sm border border-surface-border bg-surface px-2 py-1.5 text-sm text-foreground focus:border-gold/40 focus:outline-none sm:px-3"
           >
             {(Object.keys(FORMAT_LABELS) as DeckFormat[]).map((f) => (
               <option key={f} value={f}>
@@ -621,29 +642,30 @@ export default function DeckBuilderPage() {
             onChange={(e) =>
               setVisibility(e.target.value as "PUBLIC" | "PRIVATE")
             }
-            className="rounded-sm border border-surface-border bg-surface px-3 py-1.5 text-sm text-foreground focus:border-gold/40 focus:outline-none"
+            className="rounded-sm border border-surface-border bg-surface px-2 py-1.5 text-sm text-foreground focus:border-gold/40 focus:outline-none sm:px-3"
           >
             <option value="PRIVATE">{t("private")}</option>
             <option value="PUBLIC">{t("public")}</option>
           </select>
 
-          <button
-            onClick={runValidation}
-            className="rounded-sm border border-gold/30 px-4 py-1.5 font-heading text-xs font-semibold tracking-widest text-gold uppercase transition-all hover:border-gold/60 hover:bg-gold/5"
-          >
-            {t("validate")}
-          </button>
+          <div className="flex items-center gap-2 sm:hidden">
+            <button
+              onClick={runValidation}
+              className="rounded-sm border border-gold/30 px-3 py-1.5 font-heading text-xs font-semibold tracking-widest text-gold uppercase transition-all hover:border-gold/60 hover:bg-gold/5"
+            >
+              {t("validate")}
+            </button>
 
-          <button
-            type="button"
-            disabled={saving || deckName.trim().length < 2}
-            onClick={() => void handleSaveClick()}
-            className="rounded-sm border border-gold/40 bg-gold/10 px-5 py-1.5 font-heading text-xs font-semibold tracking-widest text-gold uppercase transition-all hover:bg-gold/15 disabled:opacity-40"
-          >
-            {saving ? t("saving") : t("save")}
-          </button>
-
-          <LanguageSwitcher />
+            <button
+              type="button"
+              disabled={saving || deckName.trim().length < 2}
+              onClick={() => void handleSaveClick()}
+              className="rounded-sm border border-gold/40 bg-gold/10 px-4 py-1.5 font-heading text-xs font-semibold tracking-widest text-gold uppercase transition-all hover:bg-gold/15 disabled:opacity-40"
+            >
+              {saving ? t("saving") : t("save")}
+            </button>
+            <LanguageSwitcher />
+          </div>
         </div>
       </header>
 
@@ -741,7 +763,7 @@ export default function DeckBuilderPage() {
           </main>
         </div>
 
-        <aside className="deck-builder-sidebar deck-builder-sidebar--left order-2 flex max-h-[min(50vh,28rem)] w-full shrink-0 flex-col overflow-y-auto border-t border-gold/20 lg:order-1 lg:max-h-none lg:min-h-0 lg:w-[min(22rem,36vw)] lg:max-w-sm lg:overflow-y-auto lg:border-t-0">
+        <aside className="deck-builder-sidebar deck-builder-sidebar--left order-2 flex max-h-[min(60vh,32rem)] w-full shrink-0 flex-col overflow-y-auto border-t border-gold/20 lg:order-1 lg:max-h-none lg:min-h-0 lg:w-[min(22rem,36vw)] lg:max-w-sm lg:overflow-y-auto lg:border-t-0">
           <div className="shrink-0 px-3 pt-4 pb-2">
             <h3 className="font-heading text-xs font-semibold tracking-[0.2em] text-gold uppercase">
               {t("cardSearch.libraryTitle")}

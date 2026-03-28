@@ -104,17 +104,17 @@ export default function MyDecksPage() {
   return (
     <div className="flex min-h-screen flex-col bg-background">
       <nav className="sticky top-0 z-40 border-b border-surface-border/50 bg-background/90 backdrop-blur-md">
-        <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-6">
+        <div className="mx-auto flex h-auto min-h-14 max-w-6xl flex-wrap items-center justify-between gap-x-4 gap-y-2 px-4 py-2 sm:px-6">
           <Link
             href="/"
             className="font-heading text-sm font-semibold tracking-wider text-gold transition-colors hover:text-gold-bright"
           >
             In the Arsenal
           </Link>
-          <div className="flex items-center gap-4">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-4">
             <Link
               href="/blog"
-              className="text-sm text-muted transition-colors hover:text-foreground"
+              className="hidden text-sm text-muted transition-colors hover:text-foreground sm:inline"
             >
               {tNav("blog")}
             </Link>
@@ -123,7 +123,7 @@ export default function MyDecksPage() {
             </Link>
             <Link
               href="/decks/builder"
-              className="rounded-sm border border-gold/40 bg-gold/10 px-4 py-1.5 font-heading text-xs font-semibold tracking-widest text-gold uppercase transition-all hover:bg-gold/15"
+              className="rounded-sm border border-gold/40 bg-gold/10 px-3 py-1.5 font-heading text-xs font-semibold tracking-widest text-gold uppercase transition-all hover:bg-gold/15 sm:px-4"
             >
               {t("newDeck")}
             </Link>
@@ -133,10 +133,10 @@ export default function MyDecksPage() {
         </div>
       </nav>
 
-      <main className="mx-auto w-full max-w-6xl px-6 py-8">
+      <main className="mx-auto w-full max-w-6xl px-4 py-6 sm:px-6 sm:py-8">
         <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <h1 className="font-heading text-2xl font-bold tracking-wide text-foreground">
+            <h1 className="font-heading text-xl font-bold tracking-wide text-foreground sm:text-2xl">
               {t("title")}
             </h1>
             <p className="mt-1 text-sm text-muted">{t("subtitle")}</p>

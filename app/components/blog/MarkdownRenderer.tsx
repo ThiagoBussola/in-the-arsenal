@@ -9,22 +9,22 @@ interface MarkdownRendererProps {
 
 export function MarkdownRenderer({ content }: MarkdownRendererProps) {
   return (
-    <div className="prose-fab">
+    <div className="prose-fab max-w-full overflow-hidden">
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
         components={{
           h1: ({ children }) => (
-            <h1 className="mb-6 mt-10 font-heading text-3xl font-bold tracking-wide text-foreground first:mt-0">
+            <h1 className="mb-6 mt-10 font-heading text-2xl font-bold tracking-wide text-foreground first:mt-0 sm:text-3xl">
               {children}
             </h1>
           ),
           h2: ({ children }) => (
-            <h2 className="mb-4 mt-8 font-heading text-2xl font-semibold tracking-wide text-foreground">
+            <h2 className="mb-4 mt-8 font-heading text-xl font-semibold tracking-wide text-foreground sm:text-2xl">
               {children}
             </h2>
           ),
           h3: ({ children }) => (
-            <h3 className="mb-3 mt-6 font-heading text-xl font-semibold text-foreground">
+            <h3 className="mb-3 mt-6 font-heading text-lg font-semibold text-foreground sm:text-xl">
               {children}
             </h3>
           ),
@@ -85,7 +85,7 @@ export function MarkdownRenderer({ content }: MarkdownRendererProps) {
             <img
               src={src}
               alt={alt || ""}
-              className="my-4 max-w-full rounded-sm border border-surface-border"
+              className="my-4 h-auto max-w-full rounded-sm border border-surface-border"
             />
           ),
           hr: () => (

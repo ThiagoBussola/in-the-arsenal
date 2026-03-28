@@ -62,7 +62,7 @@ export default function LoginPage() {
           <p className="mt-2 text-sm text-muted">{t("loginSubtitle")}</p>
         </div>
 
-        <div className="rounded-sm border border-surface-border/80 bg-surface/85 p-8 shadow-xl shadow-black/30 backdrop-blur-md">
+        <div className="rounded-sm border border-surface-border/80 bg-surface/85 p-5 shadow-xl shadow-black/30 backdrop-blur-md sm:p-8">
           {error && (
             <div className="mb-4 rounded-sm border border-crimson/30 bg-crimson/10 p-3 text-sm text-crimson-bright">
               {error}

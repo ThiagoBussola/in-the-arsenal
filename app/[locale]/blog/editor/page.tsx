@@ -193,14 +193,14 @@ export default function BlogEditorPage() {
   return (
     <div className="flex min-h-screen flex-col bg-background">
       <nav className="sticky top-0 z-50 border-b border-surface-border/50 bg-background/80 backdrop-blur-md">
-        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6">
+        <div className="mx-auto flex h-auto min-h-14 max-w-7xl flex-wrap items-center justify-between gap-x-4 gap-y-2 px-4 py-2 sm:px-6">
           <a
             href="/"
-            className="font-heading text-lg font-semibold tracking-wider text-gold"
+            className="font-heading text-base font-semibold tracking-wider text-gold sm:text-lg"
           >
             In the Arsenal
           </a>
-          <div className="flex items-center gap-6 text-sm text-muted">
+          <div className="flex flex-wrap items-center gap-3 text-sm text-muted sm:gap-4">
             <a href="../blog" className="transition-colors hover:text-foreground">
               {tNav("blog")}
             </a>
@@ -210,26 +210,26 @@ export default function BlogEditorPage() {
         </div>
       </nav>
 
-      <main className="mx-auto w-full max-w-7xl flex-1 px-6 py-8">
-        <div className="mb-6 flex items-center justify-between">
-          <h1 className="font-heading text-2xl font-bold tracking-wide text-foreground">
+      <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-6 sm:px-6 sm:py-8">
+        <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <h1 className="font-heading text-xl font-bold tracking-wide text-foreground sm:text-2xl">
             {editId ? t("editPost") : t("newPost")}
           </h1>
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-3">
             {message && (
               <span className="text-sm text-gold">{message}</span>
             )}
             <button
               onClick={() => save("DRAFT")}
               disabled={saving || !title || !content}
-              className="rounded-sm border border-surface-border px-4 py-2 text-sm text-muted transition-colors hover:border-gold/30 hover:text-foreground disabled:opacity-50"
+              className="rounded-sm border border-surface-border px-3 py-2 text-sm text-muted transition-colors hover:border-gold/30 hover:text-foreground disabled:opacity-50 sm:px-4"
             >
               {saving ? t("saving") : t("saveDraft")}
             </button>
             <button
               onClick={() => save("PUBLISHED")}
               disabled={saving || !title || !content}
-              className="rounded-sm border border-gold/40 bg-gold/10 px-4 py-2 font-heading text-xs font-semibold tracking-widest text-gold uppercase transition-all hover:border-gold/70 hover:bg-gold/15 disabled:opacity-50"
+              className="rounded-sm border border-gold/40 bg-gold/10 px-3 py-2 font-heading text-xs font-semibold tracking-widest text-gold uppercase transition-all hover:border-gold/70 hover:bg-gold/15 disabled:opacity-50 sm:px-4"
             >
               {saving ? t("publishing") : t("publish")}
             </button>
@@ -316,10 +316,10 @@ export default function BlogEditorPage() {
           </div>
         </div>
 
-        <div className="mb-2 flex items-center gap-2 border-b border-surface-border">
+        <div className="mb-2 flex flex-wrap items-center gap-2 border-b border-surface-border">
           <button
             onClick={() => setShowPreview(false)}
-            className={`px-4 py-2 text-sm font-medium transition-colors ${
+            className={`px-3 py-2 text-sm font-medium transition-colors sm:px-4 ${
               !showPreview
                 ? "border-b-2 border-gold text-gold"
                 : "text-muted hover:text-foreground"
@@ -329,7 +329,7 @@ export default function BlogEditorPage() {
           </button>
           <button
             onClick={() => setShowPreview(true)}
-            className={`px-4 py-2 text-sm font-medium transition-colors ${
+            className={`px-3 py-2 text-sm font-medium transition-colors sm:px-4 ${
               showPreview
                 ? "border-b-2 border-gold text-gold"
                 : "text-muted hover:text-foreground"
@@ -349,7 +349,7 @@ export default function BlogEditorPage() {
         </div>
 
         {showPreview ? (
-          <div className="min-h-[500px] rounded-sm border border-surface-border bg-surface p-8">
+          <div className="min-h-[400px] rounded-sm border border-surface-border bg-surface p-4 sm:min-h-[500px] sm:p-8">
             {content ? (
               <MarkdownRenderer content={content} />
             ) : (
@@ -364,7 +364,7 @@ export default function BlogEditorPage() {
               value={content}
               onChange={(e) => setContent(e.target.value)}
               placeholder={t("contentPlaceholder")}
-              className="min-h-[500px] w-full resize-y bg-surface p-4 font-mono text-sm text-foreground placeholder-muted/60 outline-none"
+              className="min-h-[400px] w-full resize-y bg-surface p-3 font-mono text-sm text-foreground placeholder-muted/60 outline-none sm:min-h-[500px] sm:p-4"
             />
           </div>
         )}

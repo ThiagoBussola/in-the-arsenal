@@ -20,23 +20,23 @@ export default async function Home({ params }: Props) {
     <div className="flex flex-col min-h-screen">
       {/* ── Navigation ── */}
       <nav className="fixed top-0 z-50 w-full border-b border-surface-border/50 bg-background/80 backdrop-blur-md">
-        <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
+        <div className="mx-auto flex h-auto min-h-14 max-w-6xl flex-wrap items-center justify-between gap-x-4 gap-y-2 px-4 py-2 sm:px-6">
           <a
             href={`/${locale}`}
-            className="font-heading text-lg font-semibold tracking-wider text-gold"
+            className="font-heading text-base font-semibold tracking-wider text-gold sm:text-lg"
           >
             In the Arsenal
           </a>
-          <div className="flex items-center gap-6 text-sm text-muted">
+          <div className="flex flex-wrap items-center gap-3 text-sm text-muted sm:gap-4 md:gap-6">
             <a
               href={`/${locale}#about`}
-              className="transition-colors hover:text-foreground"
+              className="hidden transition-colors hover:text-foreground sm:inline"
             >
               {t("nav.about")}
             </a>
             <a
               href={`/${locale}#pillars`}
-              className="transition-colors hover:text-foreground"
+              className="hidden transition-colors hover:text-foreground sm:inline"
             >
               {t("nav.features")}
             </a>
@@ -59,7 +59,7 @@ export default async function Home({ params }: Props) {
       </nav>
 
       {/* ── Hero Section ── */}
-      <section className="hero-gradient relative flex min-h-screen flex-col items-center justify-center overflow-hidden px-6 text-center">
+      <section className="hero-gradient relative flex min-h-screen flex-col items-center justify-center overflow-hidden px-4 text-center sm:px-6">
         <div className="noise-overlay pointer-events-none absolute inset-0" />
 
         <div className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
@@ -77,7 +77,7 @@ export default async function Home({ params }: Props) {
             <ShieldIcon className="h-10 w-10 text-gold" />
           </div>
 
-          <h1 className="font-heading text-5xl font-bold leading-tight tracking-wide text-foreground sm:text-6xl lg:text-7xl">
+          <h1 className="font-heading text-3xl font-bold leading-tight tracking-wide text-foreground sm:text-5xl md:text-6xl lg:text-7xl">
             {t("hero.titlePre")}{" "}
             <span className="bg-gradient-to-r from-gold-bright via-gold to-gold-dim bg-clip-text text-transparent">
               {t("hero.titleHighlight")}
@@ -90,7 +90,7 @@ export default async function Home({ params }: Props) {
             <div className="h-px w-16 bg-gradient-to-l from-transparent to-gold/40" />
           </div>
 
-          <p className="text-balance max-w-xl text-lg leading-relaxed text-muted sm:text-xl">
+          <p className="text-balance max-w-xl text-base leading-relaxed text-muted sm:text-lg md:text-xl">
             {t("hero.subtitlePrefix")}
             <span className="font-medium text-crimson-bright">
               {t("hero.gameName")}
@@ -127,14 +127,14 @@ export default async function Home({ params }: Props) {
       {/* ── About Section ── */}
       <section
         id="about"
-        className="relative border-t border-surface-border/50 bg-surface px-6 py-24 sm:py-32"
+        className="relative border-t border-surface-border/50 bg-surface px-4 py-16 sm:px-6 sm:py-24 md:py-32"
       >
         <div className="noise-overlay pointer-events-none absolute inset-0" />
         <div className="relative z-10 mx-auto max-w-4xl text-center">
           <h2 className="font-heading text-sm font-semibold tracking-[0.3em] text-gold uppercase">
             {t("about.tag")}
           </h2>
-          <p className="mt-6 text-balance text-3xl font-light leading-snug text-foreground sm:text-4xl">
+          <p className="mt-6 text-balance text-2xl font-light leading-snug text-foreground sm:text-3xl md:text-4xl">
             {t("about.heading")}
           </p>
           <p className="mx-auto mt-6 max-w-2xl text-base leading-relaxed text-muted">
@@ -146,7 +146,7 @@ export default async function Home({ params }: Props) {
       {/* ── Pillars Section ── */}
       <section
         id="pillars"
-        className="relative border-t border-surface-border/50 bg-background px-6 py-24 sm:py-32"
+        className="relative border-t border-surface-border/50 bg-background px-4 py-16 sm:px-6 sm:py-24 md:py-32"
       >
         <div className="noise-overlay pointer-events-none absolute inset-0" />
 
@@ -155,12 +155,12 @@ export default async function Home({ params }: Props) {
             <h2 className="font-heading text-sm font-semibold tracking-[0.3em] text-gold uppercase">
               {t("pillars.tag")}
             </h2>
-            <p className="text-balance mt-4 text-2xl font-light text-foreground sm:text-3xl">
+            <p className="text-balance mt-4 text-xl font-light text-foreground sm:text-2xl md:text-3xl">
               {t("pillars.heading")}
             </p>
           </div>
 
-          <div className="grid gap-8 md:grid-cols-2">
+          <div className="grid gap-6 sm:gap-8 md:grid-cols-2">
             <div className="card-glow group relative overflow-hidden rounded-sm border border-surface-border bg-surface transition-all duration-300 hover:border-gold/20">
               <div className="absolute inset-0 bg-gradient-to-b from-crimson/5 to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
               <div className="relative p-8 sm:p-10">
@@ -207,14 +207,14 @@ export default async function Home({ params }: Props) {
       </section>
 
       {/* ── Teaser Banner ── */}
-      <section className="relative border-t border-surface-border/50 bg-surface px-6 py-20">
+      <section className="relative border-t border-surface-border/50 bg-surface px-4 py-14 sm:px-6 sm:py-20">
         <div className="noise-overlay pointer-events-none absolute inset-0" />
         <div className="pointer-events-none absolute left-1/2 top-1/2 h-40 w-80 -translate-x-1/2 -translate-y-1/2 rounded-full bg-crimson/8 blur-[80px]" />
         <div className="relative z-10 mx-auto max-w-2xl text-center">
           <p className="font-heading text-sm tracking-[0.3em] text-gold/80 uppercase">
             {t("teaser.tag")}
           </p>
-          <p className="mt-4 text-2xl font-light text-foreground sm:text-3xl">
+          <p className="mt-4 text-xl font-light text-foreground sm:text-2xl md:text-3xl">
             {t("teaser.heading")}
           </p>
           <p className="mt-4 text-base text-muted">
@@ -230,7 +230,7 @@ export default async function Home({ params }: Props) {
       </section>
 
       {/* ── Footer ── */}
-      <footer className="border-t border-surface-border/50 bg-background px-6 py-10">
+      <footer className="border-t border-surface-border/50 bg-background px-4 py-8 sm:px-6 sm:py-10">
         <div className="mx-auto flex max-w-6xl flex-col items-center gap-4 sm:flex-row sm:justify-between">
           <p className="font-heading text-xs tracking-widest text-muted/60 uppercase">
             In the Arsenal &copy; {new Date().getFullYear()}

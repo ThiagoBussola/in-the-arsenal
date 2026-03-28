@@ -288,7 +288,7 @@ function ZoneSection({
                       draggable={false}
                       onMouseDown={(ev) => ev.stopPropagation()}
                       onClick={() => onRemove(entry.uniqueId)}
-                      className="flex h-6 w-6 items-center justify-center rounded-bl-sm border border-gold/20 bg-background/95 text-[11px] text-muted opacity-0 transition-opacity hover:text-crimson-bright group-hover:opacity-100"
+                      className="flex h-7 w-7 items-center justify-center rounded-bl-sm border border-gold/20 bg-background/95 text-[11px] text-muted opacity-100 transition-opacity hover:text-crimson-bright sm:h-6 sm:w-6 sm:opacity-0 sm:group-hover:opacity-100 [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover:opacity-100"
                       aria-label="Remove"
                     >
                       ✕
@@ -428,7 +428,7 @@ function ZoneSection({
                     draggable={false}
                     onMouseDown={(ev) => ev.stopPropagation()}
                     onClick={() => onRemove(entry.uniqueId)}
-                    className="text-xs text-muted opacity-0 transition-opacity group-hover:opacity-100 hover:text-crimson-bright"
+                    className="text-xs text-muted opacity-100 transition-opacity hover:text-crimson-bright sm:opacity-0 sm:group-hover:opacity-100 [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover:opacity-100"
                   >
                     ✕
                   </button>
